@@ -1,0 +1,7 @@
+build/
+dist/*.zip
+dist/*.jar
+dist/*.exe
+dist/SageTVTranscoder
+vendor/
+*.bak

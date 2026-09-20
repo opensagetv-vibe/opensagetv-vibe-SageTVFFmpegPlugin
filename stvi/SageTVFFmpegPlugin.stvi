@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STARTER STVi MODULE.
+
+  This file deliberately contains the stable import hook and the SageTV FFmpeg Plugin menu
+  definition, but the base SageTV7 menu insertion symbol must be verified in
+  Studio against the stock STV used for release. HANDOFF.md tells Codex exactly
+  how to finish/validate that link before publishing the plugin.
+-->
+<Module xmlns="urn:tv.sage/stv" Name="SageTVFFmpegPlugin" PersistentPrimaryRefs="true">
+ <Hook Name="STVImported" Sym="SAGETVFFMPEG-IMPORT-1">
+  <Action Name="DebugLog(&quot;OpenSageTV Vibe FFmpeg Plugin STVi imported&quot;)" Sym="SAGETVFFMPEG-IMPORT-2"/>
+  <Action Name="ReturnValue = &quot;AutoCleanupSTVImportedHook&quot;" Sym="SAGETVFFMPEG-IMPORT-3"/>
+ </Hook>
+ <Menu Name="OpenSageTV Vibe FFmpeg Plugin" Sym="SAGETVFFMPEG-MENU-1">
+  <Panel Name="SageTVFFmpegRoot" Sym="SAGETVFFMPEG-PANEL-1">
+   <Text Name="&quot;OpenSageTV Vibe FFmpeg Plugin&quot;" Sym="SAGETVFFMPEG-TEXT-1"/>
+   <Text Name="&quot;This STVi screen is completed/linked in Studio during Phase 2. The server plugin is already functional and exposes INI/status/capability values through GetPluginConfigValue().&quot;" Sym="SAGETVFFMPEG-TEXT-2"/>
+  </Panel>
+ </Menu>
+</Module>

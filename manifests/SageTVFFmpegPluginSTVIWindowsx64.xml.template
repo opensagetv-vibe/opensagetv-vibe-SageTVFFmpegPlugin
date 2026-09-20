@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SageTVPlugin>
+  <Name>OpenSageTV Vibe FFmpeg Plugin UI Windows x64</Name>
+  <Identifier>SageTVFFmpegPluginSTVIWinx64</Identifier>
+  <Author>OpenSageTV Vibe</Author>
+  <CreationDate>2026.09.20</CreationDate>
+  <ModificationDate>@DATE@</ModificationDate>
+  <Version beta="true">@PLUGIN_VERSION@</Version>
+  <OS>Windows</OS>
+  <Desktop>false</Desktop>
+  <Description>STVi configuration and monitoring UI for OpenSageTV Vibe FFmpeg Plugin.</Description>
+  <PluginType>STVI</PluginType>
+  <Package><PackageType>STVI</PackageType><Location>https://github.com/opensagetv-vibe/SageTVFFmpegPlugin/releases/download/v@PLUGIN_VERSION@/SageTVFFmpegPlugin-STVI-@PLUGIN_VERSION@.zip</Location><MD5>@STVI_MD5@</MD5></Package>
+  <Dependency><Plugin>SageTVFFmpegPluginWinx64</Plugin><MinVersion>@PLUGIN_VERSION@</MinVersion></Dependency>
+  <Dependency><STV>SageTV7</STV><MinVersion>7.0</MinVersion></Dependency>
+  <Webpage>https://github.com/opensagetv-vibe/SageTVFFmpegPlugin</Webpage>
+</SageTVPlugin>

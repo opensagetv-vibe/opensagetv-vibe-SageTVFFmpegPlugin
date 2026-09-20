@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SageTVPlugin>
+  <Name>OpenSageTV Vibe FFmpeg Plugin Windows x64</Name>
+  <Identifier>SageTVFFmpegPluginWinx64</Identifier>
+  <Author>OpenSageTV Vibe</Author>
+  <CreationDate>2026.09.20</CreationDate>
+  <ModificationDate>@DATE@</ModificationDate>
+  <Version beta="true">@PLUGIN_VERSION@</Version>
+  <OS>Windows</OS>
+  <Desktop>false</Desktop>
+  <ServerOnly>true</ServerOnly>
+  <Description>Windows x64 server plugin that utilizes the OpenSageTV Vibe FFmpeg runtime. Stock Sage.jar and stock ffmpeg remain untouched.</Description>
+  <PluginType>Standard</PluginType>
+  <ImplementationClass>org.opensagetv.vibe.ffmpeg.SageTVFFmpegPlugin</ImplementationClass>
+  <Package><PackageType>JAR</PackageType><Location>https://github.com/opensagetv-vibe/SageTVFFmpegPlugin/releases/download/v@PLUGIN_VERSION@/SageTVFFmpegPlugin-jar-@PLUGIN_VERSION@.zip</Location><MD5>@PLUGIN_JAR_MD5@</MD5></Package>
+  <Package><PackageType>System</PackageType><Location>https://github.com/opensagetv-vibe/SageTVFFmpegPlugin/releases/download/v@PLUGIN_VERSION@/SageTVFFmpegPlugin-system-windows-x64-@PLUGIN_VERSION@.zip</Location><MD5>@PLUGIN_SYSTEM_MD5@</MD5></Package>
+  <Package><PackageType>System</PackageType><Location>https://github.com/opensagetv-vibe/opensagetv-vibe-ffmpeg-mim/releases/download/v@MIM_VERSION@/OpenSageTVVibeMIMRuntimeWindowsx64-@MIM_VERSION@.zip</Location><MD5>@MIM_RUNTIME_MD5@</MD5></Package>
+  <Dependency><core/><MinVersion>9.2.2</MinVersion></Dependency>
+  <Webpage>https://github.com/opensagetv-vibe/SageTVFFmpegPlugin</Webpage>
+  <ReleaseNotes>See project CHANGELOG.md.</ReleaseNotes>
+</SageTVPlugin>
