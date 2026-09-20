@@ -32,3 +32,11 @@
 - Captured 25 seconds of 1920x1080 HDMI evidence with H.264 video and 48 kHz
   stereo AAC audio; FFmpeg detected no two-second freeze, one-second black
   interval, or two-second silence.
+- Passed explicit DVD MIM main-feature playback on isolated `.232` with the
+  optional updated Vibe Core resolver. The generated authored DVD used the
+  plugin bridge without replacing stock `ffmpeg`; MIM selected VAAPI
+  `h264_vaapi`, Android selected a hardware AVC decoder, cadence measured
+  1.002x with zero dropped frames, and pause/play, FF, REW, chapter, STOP, and
+  teardown recovered cleanly. Ordinary recorded/live plugin use remains
+  compatible with an unmodified stock `Sage.jar`; DVD MIM specifically needs
+  the optional Core DVD transform integration.

@@ -234,3 +234,24 @@ failure.
 
 The only repository backlog item is explicit user approval before any GitHub
 repository, release, or SageTV plugin-catalog publication.
+
+### Optional DVD MIM integration proof
+
+On 2026-09-20 isolated `.232` received an optional Vibe Core fix that makes
+`MiniDVDStreamTranscoder` use stock SageTV's existing
+`FFMPEGTranscoder.getTranscoderPath()` resolver. This lets negotiated DVD MIM
+main-feature playback reach this plugin's `SageTVTranscoder` bridge while
+leaving stock `ffmpeg` byte-identical. It does not change the plugin's primary
+stock-Sage.jar compatibility boundary: ordinary prerecorded and live
+Fixed/MIM use still works with stock Core, while DVD MIM requires the optional
+updated Core because stock Core does not expose that DVD transform hook.
+
+Non-Pro Fire TV `.25` passed the generated authored DVD with `video/avc`,
+MediaTek hardware AVC decoding, 92,659,936 bytes pushed, 1.002x measured
+cadence, zero video drops, and recovered pause/play, FF, REW, chapter-up, and
+STOP. The active server job reported `backend=vaapi`,
+`encoder=h264_vaapi`, and `hardwareEncode=true`; no active job remained after
+teardown. Android evidence is retained as
+`artifacts/firetv/ffmpeg-plugin-dvd-mim-main-feature-20260920.json` and the
+generated-content HDMI proof as
+`artifacts/firetv/ffmpeg-plugin-dvd-mim-hdmi-20260920.mp4`.
