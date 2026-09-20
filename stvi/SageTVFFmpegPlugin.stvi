@@ -1,21 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  STARTER STVi MODULE.
-
-  This file deliberately contains the stable import hook and the SageTV FFmpeg Plugin menu
-  definition, but the base SageTV7 menu insertion symbol must be verified in
-  Studio against the stock STV used for release. HANDOFF.md tells Codex exactly
-  how to finish/validate that link before publishing the plugin.
--->
-<Module xmlns="urn:tv.sage/stv" Name="SageTVFFmpegPlugin" PersistentPrimaryRefs="true">
- <Hook Name="STVImported" Sym="SAGETVFFMPEG-IMPORT-1">
-  <Action Name="DebugLog(&quot;OpenSageTV Vibe FFmpeg Plugin STVi imported&quot;)" Sym="SAGETVFFMPEG-IMPORT-2"/>
-  <Action Name="ReturnValue = &quot;AutoCleanupSTVImportedHook&quot;" Sym="SAGETVFFMPEG-IMPORT-3"/>
+<Module xmlns="urn:tv.sage/stv" Name="OpenSageTV Vibe FFmpeg Plugin" PersistentPrimaryRefs="true">
+ <Hook Name="STVImported" Sym="VIBEFFMPEG-IMPORT-HOOK">
+  <Action Name="Parent = FindWidgetBySymbol(&quot;OPUS4A-125847&quot;)" Sym="VIBEFFMPEG-FIND-SETUP-PARENT">
+   <Conditional Name="Parent != null" Sym="VIBEFFMPEG-HAS-SETUP-PARENT">
+    <Branch Name="true" Sym="VIBEFFMPEG-HAS-SETUP-PARENT-TRUE">
+     <Action Name="Child = FindWidgetBySymbol(&quot;VIBEFFMPEG-SETUP-ITEM&quot;)" Sym="VIBEFFMPEG-FIND-SETUP-ITEM">
+      <Conditional Name="Child != null &amp;&amp; GetWidgetParent(Child, &quot;Panel&quot;, &quot;Secondary Menu Items Area&quot;) == null" Sym="VIBEFFMPEG-NEEDS-SETUP-LINK">
+       <Branch Name="true" Sym="VIBEFFMPEG-NEEDS-SETUP-LINK-TRUE">
+        <Action Name="AddWidgetChild(Parent, Child)" Sym="VIBEFFMPEG-ADD-SETUP-LINK"/>
+       </Branch>
+      </Conditional>
+     </Action>
+    </Branch>
+    <Branch Name="false" Sym="VIBEFFMPEG-HAS-SETUP-PARENT-FALSE">
+     <Action Name="DebugLog(&quot;OpenSageTV Vibe FFmpeg Plugin: stock SageTV7 Setup insertion point OPUS4A-125847 is unavailable&quot;)" Sym="VIBEFFMPEG-SETUP-PARENT-ERROR"/>
+    </Branch>
+   </Conditional>
+  </Action>
+  <Action Name="ReturnValue = &quot;AutoCleanupSTVImportedHook&quot;" Sym="VIBEFFMPEG-IMPORT-CLEANUP"/>
  </Hook>
- <Menu Name="OpenSageTV Vibe FFmpeg Plugin" Sym="SAGETVFFMPEG-MENU-1">
-  <Panel Name="SageTVFFmpegRoot" Sym="SAGETVFFMPEG-PANEL-1">
-   <Text Name="&quot;OpenSageTV Vibe FFmpeg Plugin&quot;" Sym="SAGETVFFMPEG-TEXT-1"/>
-   <Text Name="&quot;This STVi screen is completed/linked in Studio during Phase 2. The server plugin is already functional and exposes INI/status/capability values through GetPluginConfigValue().&quot;" Sym="SAGETVFFMPEG-TEXT-2"/>
-  </Panel>
- </Menu>
+ <Item Name="OpenSageTV Vibe FFmpeg Plugin" Sym="VIBEFFMPEG-SETUP-ITEM">
+  <Action Name="Plugin = GetAvailablePluginForID(&quot;SageTVFFmpegPluginLinux&quot;)" Sym="VIBEFFMPEG-FIND-LINUX-PLUGIN">
+   <Conditional Name="Plugin != null &amp;&amp; IsPluginInstalled(Plugin)" Sym="VIBEFFMPEG-LINUX-PLUGIN-INSTALLED">
+    <Branch Name="true" Sym="VIBEFFMPEG-LINUX-PLUGIN-TRUE">
+     <Action Name="AddStaticContext(&quot;Plugin&quot;, Plugin)" Sym="VIBEFFMPEG-SET-LINUX-PLUGIN-CONTEXT">
+      <Action Name="LaunchMenuWidget(FindWidgetBySymbol(&quot;NFLX1-1589546&quot;))" Sym="VIBEFFMPEG-LAUNCH-LINUX-CONFIG"/>
+     </Action>
+    </Branch>
+    <Branch Name="false" Sym="VIBEFFMPEG-LINUX-PLUGIN-FALSE">
+     <Action Name="Plugin = GetAvailablePluginForID(&quot;SageTVFFmpegPluginWinx64&quot;)" Sym="VIBEFFMPEG-FIND-WINDOWS-PLUGIN">
+      <Conditional Name="Plugin != null &amp;&amp; IsPluginInstalled(Plugin)" Sym="VIBEFFMPEG-WINDOWS-PLUGIN-INSTALLED">
+       <Branch Name="true" Sym="VIBEFFMPEG-WINDOWS-PLUGIN-TRUE">
+        <Action Name="AddStaticContext(&quot;Plugin&quot;, Plugin)" Sym="VIBEFFMPEG-SET-WINDOWS-PLUGIN-CONTEXT">
+         <Action Name="LaunchMenuWidget(FindWidgetBySymbol(&quot;NFLX1-1589546&quot;))" Sym="VIBEFFMPEG-LAUNCH-WINDOWS-CONFIG"/>
+        </Action>
+       </Branch>
+       <Branch Name="false" Sym="VIBEFFMPEG-WINDOWS-PLUGIN-FALSE">
+        <Action Name="DebugLog(&quot;OpenSageTV Vibe FFmpeg Plugin: installed Standard plugin was not found&quot;)" Sym="VIBEFFMPEG-PLUGIN-MISSING"/>
+       </Branch>
+      </Conditional>
+     </Action>
+    </Branch>
+   </Conditional>
+  </Action>
+  <Attribute Name="ButtonText" Sym="VIBEFFMPEG-SETUP-BUTTON-TEXT"><Value>"OpenSageTV Vibe FFmpeg Plugin"</Value></Attribute>
+  <Attribute Name="ThisItem" Sym="VIBEFFMPEG-SETUP-THIS-ITEM"><Value>"xItemOpenSageTVVibeFFmpegPlugin"</Value></Attribute>
+  <Attribute Name="SubMenuType" Sym="VIBEFFMPEG-SETUP-SUBMENU-TYPE"><Value>null</Value></Attribute>
+ </Item>
 </Module>

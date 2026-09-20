@@ -133,6 +133,11 @@ At startup the Standard plugin must:
 
 Important: a SageTV update may overwrite/remove the root bridge. The canonical copy under `plugins/.../launcher` survives, and the Standard plugin repairs the root bridge on the next startup. Never repair by replacing stock ffmpeg.
 
+Automation must wait for the Standard plugin's
+`startup launcher repair: OK` log event (or poll for the expected bridge hash),
+not merely for the container health check. On the commissioned `.232` server,
+SageTV became healthy before delayed plugin initialization completed.
+
 ## Phase 6 — tests that must pass
 
 Automate where possible:
@@ -181,3 +186,51 @@ Use this order to avoid publishing a plugin that references missing runtime asse
 - Current MIM already has `--mim-status`, an existing minimal `--mim-capabilities`, capability caching, Linux vendor detection and hardware encode preflight.
 
 Continue from this handoff; do not restart architecture discovery unless upstream behavior has changed.
+
+## Commissioned state - 2026-09-20
+
+The implementation phases above are complete locally, but nothing has been
+published. The repository now includes the finished Standard plugin, stock-STV
+STVi, Linux/Windows launchers, deterministic release packaging, rendered
+manifests, checksums, CI, and the common Vibe update/handoff interface.
+
+Verified results:
+
+- The complete `dev.cmd all` suite passes against an unmodified stock
+  `Sage.jar`; compile-only API stubs never enter the plugin JAR.
+- Linux and Windows packages are deterministic. Current SHA-256 values are
+  recorded in `output/packages/SHA256SUMS` after each build.
+- `.232` passed clean install, upgrade, customized-INI preservation, STVI
+  import/reload/uninstall/reimport without duplicate controls, root-launcher
+  deletion and startup repair, no-GPU software fallback, uninstall/restart,
+  stock fallback, and clean reinstall.
+- The final post-playback repair repeat also passed. The container reached its
+  health gate before plugin initialization, then logged
+  `startup launcher repair: OK`; the restored executable was mode `755` and
+  byte-identical to the canonical bridge.
+- The stock server `ffmpeg` remained byte-identical with SHA-256
+  `bdf6aabffdba7411edff8d36c389d695257fcdf823d196020176e117612862f6`.
+- The installed canonical/root bridge SHA-256 was
+  `cde13e4ef390fc090b81fbfb2e00bc6454c972282de3096ef559d14c1a468af0`.
+- Non-Pro Fire TV `.25` passed Media3 hardware playback through Fixed/MIM for
+  the generated 1080i MPEG-2/AC-3 fixture, including FF/REW, large jumps,
+  pause/resume, repeated start, stop/restart, and crash gates.
+- Live Fixed/MIM passed channel `2.1`, a change to `5.1`, and a change back to
+  `2.1`. MIM 0.4.9 reported `backend=vaapi`, `encoder=h264_vaapi`, hardware
+  encode enabled, stopped state, and no active jobs after each session.
+- HDMI evidence is retained in the Android repository at
+  `artifacts/firetv/ffmpeg-plugin-fixed-hdmi-20260920.mp4`. FFprobe reports
+  25.0 seconds, 1920x1080 H.264 video, and 48 kHz stereo AAC audio. FFmpeg
+  reported no qualifying freeze, black interval, or silence.
+- The build environment's eleven-repository workflow contract and isolated
+  handoff apply/test/validate/build/install self-test pass with this component
+  ordered after `opensagetv-vibe-ffmpeg-mim`.
+
+Two Android diagnostic assertions remain separate from this plugin: live-edge
+recovery worked without emitting the expected clamp marker, and live rewind
+moved the timeline back about 41 seconds with healthy A/V but did not increment
+the newer `serverSeekSequence` counter. Neither caused playback or transcoder
+failure.
+
+The only repository backlog item is explicit user approval before any GitHub
+repository, release, or SageTV plugin-catalog publication.

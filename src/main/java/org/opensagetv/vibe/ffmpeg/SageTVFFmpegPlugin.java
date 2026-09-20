@@ -17,11 +17,27 @@ import sage.SageTVPluginRegistry;
  * API and the companion STVi both call these methods, which edit the INI file.
  */
 public final class SageTVFFmpegPlugin implements SageTVPlugin {
-    public static final String VERSION = "0.1.0-dev";
+    public static final String VERSION = "0.1.0";
     private final RuntimePaths paths;
     private final MimRuntime mim;
     private final LauncherRepair launcher;
     private volatile String lastAction = "";
+    private volatile long restoreConfirmationUntilMs;
+
+    private static final String[] VIRTUAL_SETTINGS = new String[] {
+        "health.launcher", "health.runtime", "ini.path", "ini.lastModified",
+        "status.mimVersion", "status.platform", "status.last.state",
+        "status.last.backend", "status.last.encoder", "status.last.hardwareDecode",
+        "capabilities.ffmpegVersion", "capabilities.selectedBackend",
+        "capabilities.vaapi.compiled", "capabilities.vaapi.devicePresent", "capabilities.vaapi.preflight", "capabilities.vaapi.usable",
+        "capabilities.qsv.compiled", "capabilities.qsv.devicePresent", "capabilities.qsv.preflight", "capabilities.qsv.usable",
+        "capabilities.nvenc.compiled", "capabilities.nvenc.devicePresent", "capabilities.nvenc.preflight", "capabilities.nvenc.usable",
+        "capabilities.amf.compiled", "capabilities.amf.devicePresent", "capabilities.amf.preflight", "capabilities.amf.usable",
+        "capabilities.d3d12va.compiled", "capabilities.d3d12va.devicePresent", "capabilities.d3d12va.preflight", "capabilities.d3d12va.usable",
+        "capabilities.software.compiled", "capabilities.software.devicePresent", "capabilities.software.preflight", "capabilities.software.usable",
+        "status.raw", "capabilities.raw", "action.last",
+        "action.reload", "action.repairLauncher", "action.restoreDefaultIni"
+    };
 
     private static final Map<String, Setting> SETTINGS = new LinkedHashMap<String, Setting>();
     static {
@@ -51,6 +67,11 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
 
     public void start() {
         try { ensureLiveIni(); } catch (Exception e) { log("Unable to prepare INI: " + e); }
+        String runtimePermissions = mim.repairExecutablePermissions();
+        if (!"OK".equals(runtimePermissions)) {
+            lastAction = "startup runtime permission repair: " + runtimePermissions;
+            log(lastAction);
+        }
         String health = launcher.health();
         if (!"healthy".equals(health)) {
             lastAction = "startup launcher repair: " + launcher.repair();
@@ -62,7 +83,13 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
     public void stop() { }
     public void destroy() { }
 
-    public String[] getConfigSettings() { return SETTINGS.keySet().toArray(new String[SETTINGS.size()]); }
+    public String[] getConfigSettings() {
+        String[] result = new String[SETTINGS.size() + VIRTUAL_SETTINGS.length];
+        int index = 0;
+        for (String setting : SETTINGS.keySet()) result[index++] = setting;
+        for (String setting : VIRTUAL_SETTINGS) result[index++] = setting;
+        return result;
+    }
 
     public String getConfigValue(String setting) {
         try {
@@ -73,7 +100,7 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
             if ("ini.defaultPath".equals(setting)) return paths.defaultIni.toString();
             if ("ini.lastModified".equals(setting)) return Files.exists(paths.ini) ? String.valueOf(Files.getLastModifiedTime(paths.ini).toMillis()) : "0";
             if ("health.launcher".equals(setting)) return launcher.health();
-            if ("health.runtime".equals(setting)) return Files.isRegularFile(paths.mimExecutable) ? "present" : "missing";
+            if ("health.runtime".equals(setting)) return mim.health();
             if ("action.last".equals(setting)) return lastAction;
 
             MimRuntime.Snapshot status = mim.status(false);
@@ -92,9 +119,15 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
                 String tail = setting.substring("capabilities.".length());
                 if ("mimVersion".equals(tail) || "platform".equals(tail) || "ffmpegVersion".equals(tail) || "selectedBackend".equals(tail))
                     return MimRuntime.string(caps.json.get(tail));
-                if (tail.endsWith(".usable")) {
-                    String backend = tail.substring(0, tail.length() - ".usable".length());
-                    return MimRuntime.string(MimRuntime.path(caps.json, "backends." + backend + ".usable"));
+                int separator = tail.indexOf('.');
+                if (separator > 0) {
+                    String backend = tail.substring(0, separator);
+                    String field = tail.substring(separator + 1);
+                    if ("compiled".equals(field) || "devicePresent".equals(field) ||
+                            "preflight".equals(field) || "usable".equals(field)) {
+                        Object value = MimRuntime.path(caps.json, "backends." + backend + "." + field);
+                        return value == null ? "unavailable" : MimRuntime.string(value);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -107,7 +140,9 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
 
     public int getConfigType(String setting) {
         Setting mapped = SETTINGS.get(setting);
-        return mapped == null ? CONFIG_TEXT : mapped.type;
+        if (mapped != null) return mapped.type;
+        return setting != null && setting.startsWith("action.") && !"action.last".equals(setting)
+                ? CONFIG_BUTTON : CONFIG_TEXT;
     }
 
     public void setConfigValue(String setting, String value) {
@@ -126,6 +161,13 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
             }
             if ("action.repairLauncher".equals(setting)) { lastAction = launcher.repair(); return; }
             if ("action.restoreDefaultIni".equals(setting)) {
+                long now = System.currentTimeMillis();
+                if (now > restoreConfirmationUntilMs) {
+                    restoreConfirmationUntilMs = now + 15000;
+                    lastAction = "confirmation required: press Restore Default INI again within 15 seconds";
+                    return;
+                }
+                restoreConfirmationUntilMs = 0;
                 if (!Files.isRegularFile(paths.defaultIni)) { lastAction = "FAILED: default INI missing"; return; }
                 if (Files.exists(paths.ini)) Files.copy(paths.ini, paths.ini.resolveSibling("ffmpeg.real.ini.bak"), StandardCopyOption.REPLACE_EXISTING);
                 Files.copy(paths.defaultIni, paths.ini, StandardCopyOption.REPLACE_EXISTING);
@@ -144,11 +186,29 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
     }
     public String getConfigHelpText(String setting) {
         if (SETTINGS.containsKey(setting)) return "Stored directly in ffmpeg.real.ini. Manual edits remain authoritative and are preserved.";
-        return "";
+        if (setting != null && setting.startsWith("capabilities.")) return "Read-only value from MIM's authoritative hardware detector and preflight.";
+        if (setting != null && setting.startsWith("status.")) return "Read-only current/last MIM transcode state.";
+        if ("action.restoreDefaultIni".equals(setting)) return "Press twice within 15 seconds. The current live INI is backed up before the default is restored.";
+        if (setting != null && setting.startsWith("action.")) return "Server-side maintenance action; stock ffmpeg is never replaced.";
+        return "Read-only plugin/runtime health information.";
     }
     public String getConfigLabel(String setting) {
         Setting mapped = SETTINGS.get(setting);
-        return mapped == null ? setting : mapped.label;
+        if (mapped != null) return mapped.label;
+        if ("health.launcher".equals(setting)) return "Launcher Health";
+        if ("health.runtime".equals(setting)) return "Runtime Health";
+        if ("ini.path".equals(setting)) return "Live INI Path";
+        if ("ini.lastModified".equals(setting)) return "Live INI Last Modified";
+        if ("status.raw".equals(setting)) return "Raw MIM Status";
+        if ("capabilities.raw".equals(setting)) return "Raw Hardware Capabilities";
+        if ("action.last".equals(setting)) return "Last Maintenance Result";
+        if ("action.reload".equals(setting)) return "Reload Status and Hardware";
+        if ("action.repairLauncher".equals(setting)) return "Repair SageTVTranscoder Bridge";
+        if ("action.restoreDefaultIni".equals(setting)) return "Restore Default INI (Press Twice)";
+        if (setting != null && setting.startsWith("status.last.")) return "Last Transcode " + title(setting.substring("status.last.".length()));
+        if (setting != null && setting.startsWith("status.")) return "MIM " + title(setting.substring("status.".length()));
+        if (setting != null && setting.startsWith("capabilities.")) return "Hardware " + title(setting.substring("capabilities.".length()));
+        return setting;
     }
 
     public void resetConfig() {
@@ -173,6 +233,11 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
 
     private static void add(String name, String section, String key, String def, int type, String[] options, String label) {
         SETTINGS.put(name, new Setting(section, key, def, type, options, label));
+    }
+    private static String title(String value) {
+        if (value == null || value.length() == 0) return "";
+        String spaced = value.replace('.', ' ');
+        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
     }
     private static void log(String msg) { System.out.println("[SageTVFFmpegPlugin] " + msg); }
 

@@ -1,0 +1,66 @@
+name: Repository checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '11'
+      - name: Install native compilers
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64
+      - name: Obtain the pinned stock STV test fixture
+        run: |
+          set -euo pipefail
+          mkdir -p .deps/upstream
+          curl --fail --location --retry 3 \
+            --output .deps/upstream/SageTV7.xml \
+            https://raw.githubusercontent.com/google/sagetv/2e5a892703eaf1f56b1efb7f509021377e65ab69/stvs/SageTV7/SageTV7.xml
+      - name: Test and validate stock-server contracts
+        env:
+          ALLOW_SAGETV_STUBS: 'true'
+          SAGETV_STOCK_STV: ${{ github.workspace }}/.deps/upstream/SageTV7.xml
+        run: |
+          set -euo pipefail
+          ./scripts/test.sh
+          ./scripts/validate.sh
+          ./scripts/build-windows-launcher.sh
+      - name: Verify deterministic release packaging
+        env:
+          ALLOW_SAGETV_STUBS: 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p .deps/runtime
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          for platform in ('Linux', 'Windowsx64'):
+              target = Path('.deps/runtime') / f'OpenSageTVVibeMIMRuntime{platform}-0.4.9.zip'
+              with zipfile.ZipFile(target, 'w') as archive:
+                  archive.writestr('plugins/SageTVFFmpegPlugin/runtime/CI-FIXTURE.txt', platform)
+          PY
+          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.9.zip" \
+          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.9.zip" \
+            ./scripts/package-release.sh
+          cp output/packages/SHA256SUMS /tmp/first-SHA256SUMS
+          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.9.zip" \
+          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.9.zip" \
+            ./scripts/package-release.sh
+          cmp /tmp/first-SHA256SUMS output/packages/SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: opensagetv-vibe-SageTVFFmpegPlugin-${{ github.sha }}
+          path: output/packages/
+          if-no-files-found: error
+          retention-days: 14

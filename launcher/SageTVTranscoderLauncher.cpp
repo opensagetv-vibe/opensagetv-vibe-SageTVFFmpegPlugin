@@ -4,7 +4,9 @@
 #include <vector>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #include <shellapi.h>
 #else
@@ -43,8 +45,10 @@ int main(int argc, char** argv) {
     const fs::path self = executable_path();
     const fs::path sageHome = self.parent_path();
 #ifdef _WIN32
-    const fs::path target = sageHome/"plugins"/"SageTVFFmpegPlugin"/"runtime"/"ffmpeg_MIM.exe";
-    if (!fs::is_regular_file(target)) { std::cerr << "SageTV FFmpeg Plugin launcher: runtime missing: " << target.string() << "\n"; return 127; }
+    const fs::path pluginTarget = sageHome/"plugins"/"SageTVFFmpegPlugin"/"runtime"/"ffmpeg_MIM.exe";
+    const fs::path stockTarget = sageHome/"ffmpeg.exe";
+    const fs::path target = fs::is_regular_file(pluginTarget) ? pluginTarget : stockTarget;
+    if (!fs::is_regular_file(target)) { std::cerr << "SageTV FFmpeg Plugin launcher: plugin and stock runtimes missing\n"; return 127; }
     int wargc=0; LPWSTR* wargv=CommandLineToArgvW(GetCommandLineW(), &wargc);
     if (!wargv) return 126;
     std::wstring cmd=quote_windows(target.wstring());
@@ -58,8 +62,10 @@ int main(int argc, char** argv) {
     WaitForSingleObject(pi.hProcess,INFINITE); DWORD rc=1; GetExitCodeProcess(pi.hProcess,&rc);
     CloseHandle(pi.hThread); CloseHandle(pi.hProcess); return (int)rc;
 #else
-    const fs::path target = sageHome/"plugins"/"SageTVFFmpegPlugin"/"runtime"/"ffmpeg_MIM";
-    if (!fs::is_regular_file(target)) { std::cerr << "SageTV FFmpeg Plugin launcher: runtime missing: " << target << "\n"; return 127; }
+    const fs::path pluginTarget = sageHome/"plugins"/"SageTVFFmpegPlugin"/"runtime"/"ffmpeg_MIM";
+    const fs::path stockTarget = sageHome/"ffmpeg";
+    const fs::path target = fs::is_regular_file(pluginTarget) ? pluginTarget : stockTarget;
+    if (!fs::is_regular_file(target)) { std::cerr << "SageTV FFmpeg Plugin launcher: plugin and stock runtimes missing\n"; return 127; }
     std::vector<std::string> args; args.reserve((size_t)argc); args.push_back(target.string());
     for(int i=1;i<argc;i++) args.push_back(argv[i]);
     std::vector<char*> raw; raw.reserve(args.size()+1); for(auto& s:args) raw.push_back(&s[0]); raw.push_back(nullptr);

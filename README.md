@@ -14,9 +14,9 @@ User-facing plugin name: **OpenSageTV Vibe FFmpeg Plugin**.
 - The plugin installs/repairs a small `SageTVTranscoder` bridge because stock SageTV already prefers that executable before its `ffmpeg` fallback.
 - The STVi talks to the server-side Standard plugin; it never executes MIM locally on a remote UI.
 
-## Current scaffold status
+## Current implementation status
 
-Implemented in this handoff:
+Implemented and commissioned:
 
 - Java 8-compatible Standard plugin source.
 - Line-preserving INI editor with `.bak` and atomic replacement.
@@ -26,10 +26,19 @@ Implemented in this handoff:
 - Cross-platform native `SageTVTranscoder` bridge source.
 - Startup launcher health/repair logic.
 - Linux/Windows plugin manifest templates.
-- STVi plugin manifest and starter module.
+- Stock SageTV7/SageTV9 STVi setup screen, status views, common settings,
+  launcher repair, reload, and restore-default confirmation actions.
+- Deterministic release packages, rendered Linux/Windows/STVi plugin manifests,
+  SHA-256 checksums, and the common Vibe update/handoff workflow.
+- Hardware capability/status reporting from MIM with safe software fallback.
+- Install, upgrade, user-INI preservation, root-launcher repair, uninstall, and
+  stock-FFmpeg fallback validation on an unmodified SageTV server.
 - Separate FFmpeg/MIM patch/merge instructions in the handoff package.
 
-The STVi visual screen/menu insertion is intentionally a Phase-2 Studio task; the starter module is included and the server plugin API is ready for it.
+The `.232` commissioning server and non-Pro Fire TV validation passed recorded
+and live Fixed/MIM playback through VAAPI (`h264_vaapi`), including real
+video/audio output and HDMI continuity. The repository remains unpublished
+until explicit user approval.
 
 ## Build
 
@@ -46,7 +55,10 @@ Use a real stock SageTV jar for release compilation:
 SAGETV_JAR=/path/to/Sage.jar ./scripts/build.sh
 ```
 
-Without `SAGETV_JAR`, the build uses compile-only API stubs under `tools/sagetv-stubs`; those stubs are never included in the plugin JAR.
+Release builds require `SAGETV_JAR` or `.deps/stock/Sage.jar`. Isolated source
+checks may explicitly set `ALLOW_SAGETV_STUBS=true` to use the compile-only API
+stubs under `tools/sagetv-stubs`; those stubs are never included in the plugin
+JAR.
 
 Windows launcher from the common Linux builder:
 
@@ -75,3 +87,16 @@ SAGE_HOME/
 ```
 
 See `HANDOFF.md` for the exact Codex continuation and merge order.
+
+## Standard workflow
+
+Use the same location-independent commands as the other Vibe projects:
+
+```text
+dev.cmd test|validate|build|install|all
+update.cmd
+create_ai_handoff_zip.cmd
+```
+
+`install` is intentionally artifact-only. Physical SageTV installation is an
+explicit commissioning action through SageTV's plugin manager.

@@ -1,7 +1,10 @@
 build/
-dist/*.zip
-dist/*.jar
-dist/*.exe
-dist/SageTVTranscoder
+.deps/
+output/
+dist/
 vendor/
 *.bak
+/artifacts/*
+!/artifacts/downloads/
+/artifacts/downloads/*
+!/artifacts/downloads/.gitkeep

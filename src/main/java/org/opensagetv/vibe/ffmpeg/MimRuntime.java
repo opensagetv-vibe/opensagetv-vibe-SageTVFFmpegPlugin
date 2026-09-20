@@ -33,6 +33,35 @@ final class MimRuntime {
         return capabilities;
     }
 
+    String health() {
+        if (!Files.isRegularFile(paths.mimExecutable)) return "missing MIM wrapper";
+        if (!Files.isRegularFile(paths.ffmpegExecutable)) return "missing FFmpeg runtime";
+        if (!Files.isRegularFile(paths.ffprobeExecutable)) return "missing FFprobe runtime";
+        if (!paths.windows && !Files.isExecutable(paths.mimExecutable)) return "MIM wrapper is not executable";
+        if (!paths.windows && !Files.isExecutable(paths.ffmpegExecutable)) return "FFmpeg runtime is not executable";
+        if (!paths.windows && !Files.isExecutable(paths.ffprobeExecutable)) return "FFprobe runtime is not executable";
+        if (!Files.isRegularFile(paths.defaultIni)) return "missing default INI";
+        if (!Files.isRegularFile(paths.ini)) return "missing live INI";
+        return "healthy";
+    }
+
+    String repairExecutablePermissions() {
+        if (paths.windows) return "OK";
+        String failure = makeExecutable(paths.mimExecutable, "MIM wrapper");
+        if (failure != null) return failure;
+        failure = makeExecutable(paths.ffmpegExecutable, "FFmpeg runtime");
+        if (failure != null) return failure;
+        failure = makeExecutable(paths.ffprobeExecutable, "FFprobe runtime");
+        return failure == null ? "OK" : failure;
+    }
+
+    private static String makeExecutable(java.nio.file.Path path, String label) {
+        if (!Files.isRegularFile(path)) return "FAILED: " + label + " missing: " + path;
+        if (Files.isExecutable(path)) return null;
+        return path.toFile().setExecutable(true, false)
+                ? null : "FAILED: unable to make " + label + " executable: " + path;
+    }
+
     private Snapshot query(String arg) {
         long now = System.currentTimeMillis();
         if (!Files.isRegularFile(paths.mimExecutable)) return Snapshot.error(now, "MIM executable missing: " + paths.mimExecutable);
@@ -49,7 +78,7 @@ final class MimRuntime {
                 if (!process.waitFor(1, TimeUnit.SECONDS)) process.destroyForcibly();
                 return Snapshot.error(now, arg + " timed out");
             }
-            String raw = readAll(process.getInputStream()).trim();
+            String raw = readAll(process.getInputStream(), 262144).trim();
             if (process.exitValue() != 0) return Snapshot.error(now, arg + " exit=" + process.exitValue() + " output=" + raw);
             Map<String, Object> parsed = raw.startsWith("{") ? MiniJson.object(raw) : Collections.<String,Object>emptyMap();
             return new Snapshot(now, raw, parsed, null);
@@ -80,10 +109,13 @@ final class MimRuntime {
 
     static String string(Object value) { return value == null ? "" : String.valueOf(value); }
 
-    private static String readAll(InputStream in) throws IOException {
+    private static String readAll(InputStream in, int maximumBytes) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buf = new byte[4096]; int n;
-        while ((n = in.read(buf)) >= 0) out.write(buf, 0, n);
+        while ((n = in.read(buf)) >= 0) {
+            if (out.size() + n > maximumBytes) throw new IOException("MIM query output exceeded " + maximumBytes + " bytes");
+            out.write(buf, 0, n);
+        }
         return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
