@@ -22,6 +22,6 @@ if jar tf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" | grep -q '^sage/'; then
   echo 'ERROR: SageTV compile-contract classes leaked into the plugin JAR' >&2
   exit 3
 fi
-g++ -std=c++17 -O2 "$ROOT/launcher/SageTVTranscoderLauncher.cpp" -o "$ROOT/dist/dev/SageTVTranscoder"
+cp "$ROOT/launcher/SageTVTranscoder" "$ROOT/dist/dev/SageTVTranscoder"
 chmod +x "$ROOT/dist/dev/SageTVTranscoder"
-echo "Built dist/dev/SageTVFFmpegPlugin.jar and Linux SageTVTranscoder launcher"
+echo "Built dist/dev/SageTVFFmpegPlugin.jar and ABI-neutral Linux SageTVTranscoder launcher"

@@ -48,6 +48,14 @@ def main() -> int:
     assert members(linux_zip) == {
         "SageTVTranscoder", "plugins/SageTVFFmpegPlugin/launcher/SageTVTranscoder"
     }
+    with zipfile.ZipFile(linux_zip) as archive:
+        root_launcher = archive.read("SageTVTranscoder")
+        canonical_launcher = archive.read(
+            "plugins/SageTVFFmpegPlugin/launcher/SageTVTranscoder"
+        )
+        assert root_launcher == canonical_launcher
+        assert root_launcher.startswith(b"#!/bin/sh\n")
+        assert not root_launcher.startswith(b"\x7fELF")
     assert members(windows_zip) == {
         "SageTVTranscoder.exe", "plugins/SageTVFFmpegPlugin/launcher/SageTVTranscoder.exe"
     }

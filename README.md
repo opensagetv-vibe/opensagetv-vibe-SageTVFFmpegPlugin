@@ -23,7 +23,8 @@ Implemented and commissioned:
 - First-run creation of `ffmpeg.real.ini` from `ffmpeg.real.ini.default` without overwriting user config on upgrades.
 - MIM `--mim-status` and `--mim-capabilities` query/cache layer.
 - Virtual status/capability values for the STVi.
-- Cross-platform native `SageTVTranscoder` bridge source.
+- ABI-neutral POSIX `SageTVTranscoder` bridge for Linux and a native Windows
+  bridge source.
 - Startup launcher health/repair logic.
 - Linux/Windows plugin manifest templates.
 - Stock SageTV7/SageTV9 STVi setup screen, status views, common settings,

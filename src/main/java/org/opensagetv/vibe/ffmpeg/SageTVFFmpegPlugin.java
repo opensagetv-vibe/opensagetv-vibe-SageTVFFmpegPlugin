@@ -17,7 +17,7 @@ import sage.SageTVPluginRegistry;
  * API and the companion STVi both call these methods, which edit the INI file.
  */
 public final class SageTVFFmpegPlugin implements SageTVPlugin {
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.1";
     private final RuntimePaths paths;
     private final MimRuntime mim;
     private final LauncherRepair launcher;

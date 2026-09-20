@@ -32,7 +32,8 @@ The existing FFmpeg/MIM repository stays independent and remains the owner of FF
 - `MimRuntime`: server-side execution/cache for `--mim-status` and `--mim-capabilities`.
 - `MiniJson`: dependency-free parser for MIM JSON.
 - `LauncherRepair`: verifies and repairs the root bridge from the plugin-owned canonical copy.
-- `SageTVTranscoderLauncher.cpp`: Linux/Windows bridge source.
+- `launcher/SageTVTranscoder`: ABI-neutral POSIX bridge used by Linux packages.
+- `SageTVTranscoderLauncher.cpp`: native Windows bridge source.
 - API stubs used only for local compilation when a real Sage.jar is not supplied.
 - Linux and Windows manifest templates.
 - STVi manifest and a starter `.stvi` module.
@@ -191,7 +192,7 @@ Continue from this handoff; do not restart architecture discovery unless upstrea
 
 The implementation phases above are complete locally, but nothing has been
 published. The repository now includes the finished Standard plugin, stock-STV
-STVi, Linux/Windows launchers, deterministic release packaging, rendered
+STVi, ABI-neutral Linux/native Windows launchers, deterministic release packaging, rendered
 manifests, checksums, CI, and the common Vibe update/handoff interface.
 
 Verified results:
@@ -225,6 +226,19 @@ Verified results:
 - The build environment's eleven-repository workflow contract and isolated
   handoff apply/test/validate/build/install self-test pass with this component
   ordered after `opensagetv-vibe-ffmpeg-mim`.
+- Stock server `.175` passed a native PluginAPI install and restart-persistence
+  gate with plugin `0.1.1` enabled, `devmode=false`, and no plugin failure.
+  Its Ubuntu 20.04-era container uses glibc 2.31, which exposed and verified
+  the need for the ABI-neutral Linux launcher. The launcher reached MIM 0.4.9,
+  reported healthy software fallback, and completed a generated 1080i
+  MPEG-2/AC-3 to H.264/AAC MPEG-TS smoke transcode. The output probed as
+  3.029 seconds with both audio and video before its verified cleanup.
+- On `.175`, stock `Sage.jar` remained SHA-256
+  `d76ded981b9bc51e25b9cec821b6abeb771b46c2996dc45e453349b5e703fcb0`
+  and stock `ffmpeg` remained SHA-256
+  `ff4289cd6aeb9808dc5928e16cac8880c0f5493f88adc8df1f6bc7dc0b097448`.
+  The installed root and canonical POSIX launchers are byte-identical at
+  SHA-256 `4d9a5669795efb9003f270d01d439ffe9cd6c102d0b857da2eaaab1d741e9667`.
 
 Two Android diagnostic assertions remain separate from this plugin: live-edge
 recovery worked without emitting the expected clamp marker, and live rewind

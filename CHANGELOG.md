@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 - 2026-09-20
+
+- Replaced the Linux C++ launcher with an ABI-neutral POSIX bridge so the
+  plugin runs on stock SageTV containers with glibc 2.31 and newer hosts.
+- Strengthened launcher health checks to execute the bridge and verify that it
+  reaches the packaged MIM runtime, rather than checking only files and hashes.
+
 ## 0.1.0-dev - 2026-09-20
 
 - Established public repository/plugin identity as `SageTVFFmpegPlugin` / **OpenSageTV Vibe FFmpeg Plugin**.

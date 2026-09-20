@@ -16,11 +16,13 @@ public final class PluginSmokeTest {
     String ini="; keep this comment\n[hardware]\n; backend note\nbackend=auto\nunknown_future_key=preserve-me\n\n[logging]\nlevel=info\n";
     Files.write(runtime.resolve("ffmpeg.real.ini.default"),ini.getBytes(StandardCharsets.UTF_8));
     Path mim=runtime.resolve("ffmpeg_MIM");
-    String sh="#!/bin/sh\nif [ \"$1\" = \"--mim-status\" ]; then echo '{\"mimVersion\":\"0.4.9\",\"platform\":\"linux-x64\",\"activeJobs\":[],\"lastTranscodeJob\":{\"state\":\"stopped\",\"backend\":\"vaapi\",\"encoder\":\"h264_vaapi\",\"hardwareDecode\":false}}'; exit 0; fi\nif [ \"$1\" = \"--mim-capabilities\" ]; then echo '{\"mimVersion\":\"0.4.9\",\"platform\":\"linux-x64\",\"ffmpegVersion\":\"ffmpeg version 9.0.1\",\"selectedBackend\":\"vaapi\",\"backends\":{\"vaapi\":{\"usable\":true},\"qsv\":{\"usable\":false},\"software\":{\"usable\":true}}}'; exit 0; fi\nexit 2\n";
+    String sh="#!/bin/sh\nif [ \"$1\" = \"--mim-version\" ]; then echo 'SageTV FFmpeg MIM 0.4.9 (test)'; exit 0; fi\nif [ \"$1\" = \"--mim-status\" ]; then echo '{\"mimVersion\":\"0.4.9\",\"platform\":\"linux-x64\",\"activeJobs\":[],\"lastTranscodeJob\":{\"state\":\"stopped\",\"backend\":\"vaapi\",\"encoder\":\"h264_vaapi\",\"hardwareDecode\":false}}'; exit 0; fi\nif [ \"$1\" = \"--mim-capabilities\" ]; then echo '{\"mimVersion\":\"0.4.9\",\"platform\":\"linux-x64\",\"ffmpegVersion\":\"ffmpeg version 9.0.1\",\"selectedBackend\":\"vaapi\",\"backends\":{\"vaapi\":{\"usable\":true},\"qsv\":{\"usable\":false},\"software\":{\"usable\":true}}}'; exit 0; fi\nexit 2\n";
     Files.write(mim,sh.getBytes(StandardCharsets.UTF_8)); mim.toFile().setExecutable(false,false);
     Path ffmpeg=runtime.resolve("ffmpeg.real"); Files.write(ffmpeg,"runtime".getBytes(StandardCharsets.UTF_8)); ffmpeg.toFile().setExecutable(false,false);
     Path ffprobe=runtime.resolve("ffprobe"); Files.write(ffprobe,"probe".getBytes(StandardCharsets.UTF_8)); ffprobe.toFile().setExecutable(false,false);
-    Path canonical=launcher.resolve("SageTVTranscoder"); Files.write(canonical,"bridge".getBytes(StandardCharsets.UTF_8)); canonical.toFile().setExecutable(false,false);
+    Path canonical=launcher.resolve("SageTVTranscoder");
+    String bridge="#!/bin/sh\nexec \"$(dirname \"$0\")/plugins/SageTVFFmpegPlugin/runtime/ffmpeg_MIM\" \"$@\"\n";
+    Files.write(canonical,bridge.getBytes(StandardCharsets.UTF_8)); canonical.toFile().setExecutable(false,false);
 
     SageTVFFmpegPlugin p=new SageTVFFmpegPlugin(null,false); p.start();
     if(!Files.isExecutable(mim) || !Files.isExecutable(ffmpeg) || !Files.isExecutable(ffprobe) || !Files.isExecutable(canonical) || !Files.isExecutable(home.resolve("SageTVTranscoder")))

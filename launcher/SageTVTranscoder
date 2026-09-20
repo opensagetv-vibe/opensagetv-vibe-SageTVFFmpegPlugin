@@ -1,0 +1,28 @@
+#!/bin/sh
+# ABI-neutral Linux bridge. SageTV launches this from its server directory;
+# the canonical plugin copy can also be invoked directly by repair/diagnostic
+# tooling, so normalize either location back to SAGE_HOME.
+set -eu
+
+self_dir=$(CDPATH= cd "$(dirname "$0")" && pwd -P)
+case "$self_dir" in
+  */plugins/SageTVFFmpegPlugin/launcher)
+    sage_home=$(CDPATH= cd "$self_dir/../../.." && pwd -P)
+    ;;
+  *)
+    sage_home=$self_dir
+    ;;
+esac
+
+plugin_target="$sage_home/plugins/SageTVFFmpegPlugin/runtime/ffmpeg_MIM"
+stock_target="$sage_home/ffmpeg"
+
+if [ -f "$plugin_target" ] && [ -x "$plugin_target" ]; then
+  exec "$plugin_target" "$@"
+fi
+if [ -f "$stock_target" ] && [ -x "$stock_target" ]; then
+  exec "$stock_target" "$@"
+fi
+
+echo "SageTV FFmpeg Plugin launcher: plugin and stock runtimes missing" >&2
+exit 127
