@@ -3,5 +3,6 @@
 This is the only active backlog for this repository. Completed work is removed
 and recorded in `CHANGELOG.md` and `HANDOFF.md`.
 
-- [ ] Obtain the user's explicit approval before creating or publishing a
-  GitHub release/plugin catalog entry.
+No active tasks. Publication was explicitly approved on 2026-09-20; the
+release and SageTV catalog submission are recorded in `CHANGELOG.md` and
+`HANDOFF.md`.

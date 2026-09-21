@@ -29,6 +29,7 @@ fi
 
 if [[ -f "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" ]]; then
   ! jar tf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" | grep -q '^sage/'
+  jar tf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" | grep -Fxq 'META-INF/services/sage.DVDStreamTransformProvider'
   if strings "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" | grep -E 'VIBE_|MEDIA_STATE_URL|DVD_REMOTE_NAV|MiniDVDStreamTranscoder' >/dev/null; then
     echo 'ERROR: plugin references a Vibe-only Core protocol/symbol' >&2
     exit 1

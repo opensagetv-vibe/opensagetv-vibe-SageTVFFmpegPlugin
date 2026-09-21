@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 - 2026-09-20
+
+- Added the optional `DVDStreamTransformProvider` service for updated SageTV
+  Core builds. The provider advertises the generic `dvd_mpegts_v1` transport
+  and owns the MIM capability probe, command line, process lifetime, bounded
+  output queue, and teardown. Its implementation is loaded lazily, so the same
+  Standard-plugin JAR remains usable on an unmodified stock `Sage.jar`.
+- Added compile-only SPI stubs and a fake-MIM round-trip test. The stubs are
+  excluded from the plugin JAR, preventing duplicate `sage.*` classes.
+
 ## 0.1.1 - 2026-09-20
 
 - Replaced the Linux C++ launcher with an ABI-neutral POSIX bridge so the

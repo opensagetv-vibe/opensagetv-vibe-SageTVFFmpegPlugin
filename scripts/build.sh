@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 rm -rf "$ROOT/build" "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" "$ROOT/dist/dev/SageTVTranscoder"
-mkdir -p "$ROOT/build/classes" "$ROOT/build/stubs" "$ROOT/dist/dev"
+mkdir -p "$ROOT/build/classes" "$ROOT/build/stubs" "$ROOT/build/dvd-spi-stubs" "$ROOT/dist/dev"
 if [[ -n "${SAGETV_JAR:-}" ]]; then
   CP="$SAGETV_JAR"
 elif [[ -f "$ROOT/.deps/stock/Sage.jar" ]]; then
@@ -15,9 +15,11 @@ else
   exit 2
 fi
 test -f "$CP" || test -d "$CP" || { echo "ERROR: SageTV compile contract missing: $CP" >&2; exit 2; }
-printf '%s\n' "$CP" > "$ROOT/build/compile-classpath.txt"
-find "$ROOT/src/main/java" -name '*.java' -print0 | xargs -0 javac --release 8 -cp "$CP" -d "$ROOT/build/classes"
-jar cf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" -C "$ROOT/build/classes" .
+javac --release 8 -d "$ROOT/build/dvd-spi-stubs" "$ROOT"/tools/dvd-spi-stubs/sage/*.java
+COMPILE_CP="$CP:$ROOT/build/dvd-spi-stubs"
+printf '%s\n' "$COMPILE_CP" > "$ROOT/build/compile-classpath.txt"
+find "$ROOT/src/main/java" -name '*.java' -print0 | xargs -0 javac --release 8 -cp "$COMPILE_CP" -d "$ROOT/build/classes"
+jar cf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" -C "$ROOT/build/classes" . -C "$ROOT/src/main/resources" .
 if jar tf "$ROOT/dist/dev/SageTVFFmpegPlugin.jar" | grep -q '^sage/'; then
   echo 'ERROR: SageTV compile-contract classes leaked into the plugin JAR' >&2
   exit 3

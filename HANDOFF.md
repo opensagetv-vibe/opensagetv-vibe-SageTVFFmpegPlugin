@@ -1,12 +1,32 @@
-# Codex handoff — create opensagetv-vibe/SageTVFFmpegPlugin
+# OpenSageTV Vibe FFmpeg Plugin handoff
+
+## Provider-neutral DVD transform integration (2026-09-20)
+
+Updated SageTV Core exposes a small optional `DVDStreamTransformProvider` SPI.
+This repository supplies `MimDVDStreamTransformProvider` through
+`META-INF/services`, advertises `dvd_mpegts_v1`, and owns the MIM capability
+probe, custom command, child process, bounded output queue, and teardown. Core
+does not resolve or execute MIM/FFmpeg itself.
+
+The provider class is separate from the Standard-plugin entry class. On stock
+Core the SPI types do not exist, the service is never loaded, and established
+stock-compatible plugin behavior remains available. Compile-only SPI stubs
+under `tools/dvd-spi-stubs` are never packaged. Missing, unavailable, or failed
+providers cause updated Core to retain or restore native DVD playback.
+
+The complete `dev.cmd all` gate passes: stock-Sage.jar source contracts,
+fake-MIM provider byte round-trip, launcher tests, Linux/Windows builds,
+deterministic packages, manifests, and checksums. The development plugin JAR
+SHA-256 is
+`2d87c5f949290331b5249e6b70d5cd7c919162510f1dd4e7ebb9765070f7a7c5`.
 
 ## Goal
 
-Create a new GitHub repository under the `opensagetv-vibe` organization named:
+The GitHub repository under the `opensagetv-vibe` organization is named:
 
-`SageTVFFmpegPlugin`
+`opensagetv-vibe-SageTVFFmpegPlugin`
 
-Full repository: `opensagetv-vibe/SageTVFFmpegPlugin`
+Full repository: `opensagetv-vibe/opensagetv-vibe-SageTVFFmpegPlugin`
 
 The public SageTV plugin name is **OpenSageTV Vibe FFmpeg Plugin**. MIM remains an internal/runtime implementation detail supplied by the separate FFmpeg/MIM repository.
 
@@ -42,7 +62,7 @@ Run `./scripts/build.sh` immediately. It must pass before further work.
 
 ## Phase 1 — create repository and CI
 
-1. Create `opensagetv-vibe/SageTVFFmpegPlugin`.
+1. Create `opensagetv-vibe/opensagetv-vibe-SageTVFFmpegPlugin`.
 2. Commit this seed unchanged first so provenance is clear.
 3. Add GitHub Actions using the Vibe shared build environment where practical.
 4. Release artifacts from this repo must include:
@@ -249,16 +269,15 @@ failure.
 The only repository backlog item is explicit user approval before any GitHub
 repository, release, or SageTV plugin-catalog publication.
 
-### Optional DVD MIM integration proof
+### Historical optional DVD MIM integration proof
 
-On 2026-09-20 isolated `.232` received an optional Vibe Core fix that makes
-`MiniDVDStreamTranscoder` use stock SageTV's existing
-`FFMPEGTranscoder.getTranscoderPath()` resolver. This lets negotiated DVD MIM
-main-feature playback reach this plugin's `SageTVTranscoder` bridge while
-leaving stock `ffmpeg` byte-identical. It does not change the plugin's primary
-stock-Sage.jar compatibility boundary: ordinary prerecorded and live
-Fixed/MIM use still works with stock Core, while DVD MIM requires the optional
-updated Core because stock Core does not expose that DVD transform hook.
+The first physical proof used a Core-owned `MiniDVDStreamTranscoder`. That
+implementation has now been replaced by the provider-neutral SPI above. The
+evidence remains useful for the MIM media path, but Core now has no MIM/FFmpeg
+dependency and this plugin owns the complete transform implementation.
+Ordinary prerecorded and live Fixed/MIM still work with stock Core; optional
+transformed DVD playback needs an updated Core because stock Core has no
+provider discovery hook.
 
 Non-Pro Fire TV `.25` passed the generated authored DVD with `video/avc`,
 MediaTek hardware AVC decoding, 92,659,936 bytes pushed, 1.002x measured

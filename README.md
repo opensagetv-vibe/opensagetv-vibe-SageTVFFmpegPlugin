@@ -13,6 +13,10 @@ User-facing plugin name: **OpenSageTV Vibe FFmpeg Plugin**.
 - The plugin edits individual INI keys while preserving comments/order/unknown settings.
 - The plugin installs/repairs a small `SageTVTranscoder` bridge because stock SageTV already prefers that executable before its `ffmpeg` fallback.
 - The STVi talks to the server-side Standard plugin; it never executes MIM locally on a remote UI.
+- Updated Core builds may discover the optional, provider-neutral DVD stream
+  transform through Java `ServiceLoader`. The plugin, not Core, owns all MIM
+  capability probing and process management. Stock Core never loads the absent
+  SPI and continues to use the same Standard plugin normally.
 
 ## Current implementation status
 
@@ -35,6 +39,8 @@ Implemented and commissioned:
 - Install, upgrade, user-INI preservation, root-launcher repair, uninstall, and
   stock-FFmpeg fallback validation on an unmodified SageTV server.
 - Separate FFmpeg/MIM patch/merge instructions in the handoff package.
+- Optional `dvd_mpegts_v1` DVD transform provider for updated Core, with
+  native-DVD fallback when the provider is absent or fails.
 
 The `.232` commissioning server and non-Pro Fire TV validation passed recorded
 and live Fixed/MIM playback through VAAPI (`h264_vaapi`), including real
