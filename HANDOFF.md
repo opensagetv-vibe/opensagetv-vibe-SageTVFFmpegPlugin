@@ -210,8 +210,8 @@ Continue from this handoff; do not restart architecture discovery unless upstrea
 
 ## Commissioned state - 2026-09-20
 
-The implementation phases above are complete locally, but nothing has been
-published. The repository now includes the finished Standard plugin, stock-STV
+The implementation phases above are complete and version 0.1.2 is published
+as a GitHub prerelease. The repository includes the finished Standard plugin, stock-STV
 STVi, ABI-neutral Linux/native Windows launchers, deterministic release packaging, rendered
 manifests, checksums, CI, and the common Vibe update/handoff interface.
 
@@ -266,8 +266,10 @@ moved the timeline back about 41 seconds with healthy A/V but did not increment
 the newer `serverSeekSequence` counter. Neither caused playback or transcoder
 failure.
 
-The only repository backlog item is explicit user approval before any GitHub
-repository, release, or SageTV plugin-catalog publication.
+Explicit publication approval was received. The public source/release is at
+`opensagetv-vibe/opensagetv-vibe-SageTVFFmpegPlugin`, the required MIM 0.4.9
+runtime assets are published separately, and the four beta catalog manifests
+are submitted to `OpenSageTV/sagetv-plugin-repo` as pull request #124.
 
 ### Historical optional DVD MIM integration proof
 

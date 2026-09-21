@@ -2,6 +2,10 @@
 
 ## 0.1.2 - 2026-09-20
 
+- Published the public source repository and beta v0.1.2 release with Linux,
+  Windows x64, STVi, rendered manifest, and checksum assets. Submitted the four
+  beta catalog entries to `OpenSageTV/sagetv-plugin-repo` in pull request #124.
+
 - Added the optional `DVDStreamTransformProvider` service for updated SageTV
   Core builds. The provider advertises the generic `dvd_mpegts_v1` transport
   and owns the MIM capability probe, command line, process lifetime, bounded
