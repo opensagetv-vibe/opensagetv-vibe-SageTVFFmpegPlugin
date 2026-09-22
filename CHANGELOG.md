@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Documented Windows beta-plugin visibility and the safe
+  `SageTVPluginsDev.xml` commissioning fallback. The source manifests were
+  merged upstream in pull request #124, but the stale aggregate catalog kept
+  the plugin invisible to stock SageTV servers; aggregate refresh pull request
+  #125 was submitted with validated Windows package URLs, MD5 values, and ZIP
+  layouts.
+
 ## 0.1.2 - 2026-09-20
 
 - Published the public source repository and beta v0.1.2 release with Linux,

@@ -107,3 +107,18 @@ create_ai_handoff_zip.cmd
 
 `install` is intentionally artifact-only. Physical SageTV installation is an
 explicit commissioning action through SageTV's plugin manager.
+
+## Windows plugin visibility
+
+The Windows x64 Standard plugin and its STVi are beta plugins. In the stock
+STV plugin manager, enable **Beta Versions: Show** and refresh the available
+plugin list.
+
+SageTV lists plugins from the aggregate `SageTVPluginsV9.xml` catalog, not
+directly from individual manifests merged under `plugins/` in the catalog
+repository. If a newly accepted plugin is still absent, verify that the
+aggregate catalog contains `SageTVFFmpegPluginWinx64`. A temporary
+`SageTVPluginsDev.xml` containing the Windows manifests can commission an
+isolated server while waiting for the official aggregate catalog to refresh;
+remove that temporary override after the official catalog contains the same
+version.

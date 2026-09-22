@@ -271,6 +271,22 @@ Explicit publication approval was received. The public source/release is at
 runtime assets are published separately, and the four beta catalog manifests
 are submitted to `OpenSageTV/sagetv-plugin-repo` as pull request #124.
 
+### Windows catalog commissioning - 2026-09-22
+
+Pull request #124 was merged, but the official aggregate
+`SageTVPluginsV9.xml` and MD5 had not been regenerated since 2024. Stock
+servers therefore could not discover the merged Windows manifests. Pull
+request #125 refreshes the aggregate with the five source entries that were
+missing, including both Windows FFmpeg plugin entries.
+
+Windows server `.212` was commissioned without changing `Sage.jar` or stock
+`ffmpeg.exe`: Sagex wrote a temporary `SageTVPluginsDev.xml` containing only
+the Windows x64 Standard/STVi manifests, refreshed the plugin catalog, and set
+the stock STV beta-version filter to show. SageTV then resolved both version
+0.1.2 plugins as compatible. All referenced release assets downloaded, their
+MD5 values matched, and their ZIP layouts were verified. Remove the temporary
+development catalog after the official aggregate contains version 0.1.2.
+
 ### Historical optional DVD MIM integration proof
 
 The first physical proof used a Core-owned `MiniDVDStreamTranscoder`. That
