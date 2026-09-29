@@ -51,10 +51,17 @@ def write_zip(path: Path, entries: list[tuple[str, bytes, int]], when: tuple[int
     os.replace(temporary, path)
 
 
-def deterministic_jar(classes: Path, target: Path, when: tuple[int, ...]) -> None:
+def deterministic_jar(
+    classes: Path, resources: Path, target: Path, when: tuple[int, ...]
+) -> None:
     entries = [("META-INF/MANIFEST.MF", b"Manifest-Version: 1.0\r\n\r\n", 0o644)]
     for source in sorted(classes.rglob("*.class")):
         entries.append((source.relative_to(classes).as_posix(), source.read_bytes(), 0o644))
+    for source in sorted(path for path in resources.rglob("*") if path.is_file()):
+        name = source.relative_to(resources).as_posix()
+        if name.upper() == "META-INF/MANIFEST.MF":
+            continue
+        entries.append((name, source.read_bytes(), 0o644))
     if len(entries) == 1:
         raise SystemExit(f"no compiled plugin classes found under {classes}")
     write_zip(target, entries, when)
@@ -90,7 +97,12 @@ def main() -> int:
     when = zip_time(args.source_date_epoch)
     date = dt.datetime.fromtimestamp(args.source_date_epoch, tz=dt.timezone.utc).strftime("%Y.%m.%d")
     jar = output / "SageTVFFmpegPlugin.jar"
-    deterministic_jar(root / "build" / "classes", jar, when)
+    deterministic_jar(
+        root / "build" / "classes",
+        root / "src" / "main" / "resources",
+        jar,
+        when,
+    )
 
     version = args.plugin_version
     jar_zip = output / f"SageTVFFmpegPlugin-jar-{version}.zip"

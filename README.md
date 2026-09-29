@@ -36,16 +36,44 @@ Implemented and commissioned:
 - Deterministic release packages, rendered Linux/Windows/STVi plugin manifests,
   SHA-256 checksums, and the common Vibe update/handoff workflow.
 - Hardware capability/status reporting from MIM with safe software fallback.
+- Explicit, synthetic hardware testing that independently reports decode,
+  hardware filtering, encode, full-pipeline, and known compatibility-fallback
+  results without reading user media or changing `ffmpeg.real.ini`.
+- Credential-free JSON report export to
+  `plugins/SageTVFFmpegPlugin/reports/`, including a timestamped report and
+  `OpenSageTV-Vibe-Hardware-Test-latest.json`.
 - Install, upgrade, user-INI preservation, root-launcher repair, uninstall, and
   stock-FFmpeg fallback validation on an unmodified SageTV server.
 - Separate FFmpeg/MIM patch/merge instructions in the handoff package.
 - Optional `dvd_mpegts_v1` DVD transform provider for updated Core, with
   native-DVD fallback when the provider is absent or fails.
+- Tokenless LAN-scoped caption/session API with SageTV source authorization
+  and opaque bounded handles; no API credential is stored in the STVi.
+- Explicit MIM Direct Copy and Direct Transcode sessions. Copy performs no
+  video/audio decode or encode. Transcode reports the actual full-GPU, mixed,
+  or software fallback stage.
+- Bounded live MPEG-TS segmentation that preserves CEA, Teletext, DVB bitmap,
+  language, and timing metadata for Android-local caption rendering.
 
 The `.232` commissioning server and non-Pro Fire TV validation passed recorded
 and live Fixed/MIM playback through VAAPI (`h264_vaapi`), including real
-video/audio output and HDMI continuity. Version 0.1.2 is published as a beta;
+video/audio output and HDMI continuity. Version 0.1.3 is the current beta
+release candidate;
 the SageTV plugin-catalog entry is submitted for upstream review.
+
+## Hardware test and report export
+
+In the plugin configuration, select **Run Hardware Test**. The server creates
+a one-second synthetic MPEG-2 fixture and tests the same MPEG-2-to-H.264 stages
+used by Fixed/DVD transcoding. It removes the fixture after the bounded test,
+does not inspect recordings, and does not change the selected backend.
+The plugin refuses to start the test while a MIM transcode job is active.
+
+Select **Export Hardware Report** after the test. The plugin writes a
+credential-free JSON report under `plugins/SageTVFFmpegPlugin/reports` and
+shows the exact timestamped path in **Exported Hardware Report**. The stable
+`OpenSageTV-Vibe-Hardware-Test-latest.json` copy is overwritten only when the
+user explicitly exports another completed result.
 
 ## Build
 

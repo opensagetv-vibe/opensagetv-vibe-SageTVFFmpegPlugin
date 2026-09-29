@@ -14,6 +14,7 @@ final class MimRuntime {
     private final RuntimePaths paths;
     private volatile Snapshot status = Snapshot.empty();
     private volatile Snapshot capabilities = Snapshot.empty();
+    private volatile Snapshot hardwareTest = Snapshot.empty();
 
     MimRuntime(RuntimePaths paths) { this.paths = paths; }
 
@@ -31,6 +32,20 @@ final class MimRuntime {
         if (!force && now - current.timeMs < 30000) return current;
         capabilities = query("--mim-capabilities");
         return capabilities;
+    }
+
+    Snapshot hardwareTest() { return hardwareTest; }
+
+    Snapshot runHardwareTest() {
+        Snapshot live = status(true);
+        Object jobs = live.json.get("activeJobs");
+        if (live.ok() && jobs instanceof List && !((List<?>) jobs).isEmpty()) {
+            hardwareTest = Snapshot.error(System.currentTimeMillis(),
+                    "hardware test refused while MIM transcode jobs are active");
+            return hardwareTest;
+        }
+        hardwareTest = query("--mim-hardware-test", 120, 524288);
+        return hardwareTest;
     }
 
     String health() {
@@ -62,7 +77,9 @@ final class MimRuntime {
                 ? null : "FAILED: unable to make " + label + " executable: " + path;
     }
 
-    private Snapshot query(String arg) {
+    private Snapshot query(String arg) { return query(arg, 7, 262144); }
+
+    private Snapshot query(String arg, long timeoutSeconds, int maximumBytes) {
         long now = System.currentTimeMillis();
         if (!Files.isRegularFile(paths.mimExecutable)) return Snapshot.error(now, "MIM executable missing: " + paths.mimExecutable);
         Process process = null;
@@ -72,13 +89,13 @@ final class MimRuntime {
             pb.redirectErrorStream(true);
             pb.environment().put("SAGETV_FFMPEG_MIM_INI", paths.ini.toString());
             process = pb.start();
-            boolean done = process.waitFor(7, TimeUnit.SECONDS);
+            boolean done = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
             if (!done) {
                 process.destroy();
                 if (!process.waitFor(1, TimeUnit.SECONDS)) process.destroyForcibly();
                 return Snapshot.error(now, arg + " timed out");
             }
-            String raw = readAll(process.getInputStream(), 262144).trim();
+            String raw = readAll(process.getInputStream(), maximumBytes).trim();
             if (process.exitValue() != 0) return Snapshot.error(now, arg + " exit=" + process.exitValue() + " output=" + raw);
             Map<String, Object> parsed = raw.startsWith("{") ? MiniJson.object(raw) : Collections.<String,Object>emptyMap();
             return new Snapshot(now, raw, parsed, null);

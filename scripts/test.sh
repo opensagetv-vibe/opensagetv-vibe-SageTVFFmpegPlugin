@@ -5,13 +5,24 @@ STOCK_STV="${SAGETV_STOCK_STV:-$ROOT/../opensagetv-vibe-core/stvs/SageTV7/SageTV
 if [[ ! -f "$STOCK_STV" && -f /work/sagetv/stvs/SageTV7/SageTV7.xml ]]; then
   STOCK_STV=/work/sagetv/stvs/SageTV7/SageTV7.xml
 fi
+GENERATED_STVI="$(mktemp)"
+python3 "$ROOT/scripts/build_stvi.py" --stock-stv "$STOCK_STV" --output "$GENERATED_STVI"
+cmp "$GENERATED_STVI" "$ROOT/stvi/SageTVFFmpegPlugin.stvi"
+rm -f "$GENERATED_STVI"
 python3 "$ROOT/scripts/test_stvi.py" --stvi "$ROOT/stvi/SageTVFFmpegPlugin.stvi" --stock-stv "$STOCK_STV"
 "$ROOT/scripts/build.sh" >/dev/null
 mkdir -p "$ROOT/build/test-classes"
 CP="$(cat "$ROOT/build/compile-classpath.txt")"
-javac --release 8 -cp "$ROOT/build/classes:$CP" -d "$ROOT/build/test-classes" "$ROOT/tests/org/opensagetv/vibe/ffmpeg/PluginSmokeTest.java"
+javac --release 8 -cp "$ROOT/build/classes:$CP" -d "$ROOT/build/test-classes" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/PluginSmokeTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/CaptionSideChannelServiceTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/MimDirectSessionServiceTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/MimDirectHttpTest.java"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.PluginSmokeTest "$TMP"
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.CaptionSideChannelServiceTest "$TMP/caption-service"
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.MimDirectSessionServiceTest "$TMP/direct-service"
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.MimDirectHttpTest "$TMP/direct-http"
 
 # Native bridge argument/exit-code passthrough.
 mkdir -p "$TMP/plugins/SageTVFFmpegPlugin/runtime"

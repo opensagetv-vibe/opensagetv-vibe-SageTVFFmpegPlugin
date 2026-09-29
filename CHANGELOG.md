@@ -1,6 +1,110 @@
 # Changelog
 
-## Unreleased
+## 0.1.3 - 2026-09-29
+
+- Completed the Linux/Windows Direct deinterlace policy gate. Linux `.232`
+  reports full-GPU VAAPI for Auto, On, and Off; stock Windows `.185` reports
+  full-GPU QSV for Off and the expected mixed fallback for Auto/On. The Off
+  policy passed non-Pro Android startup, seek, pause/resume, hardware-client
+  decode, synchronized STV captions, clean teardown, and zero-orphan checks.
+- Corrected the Android STV-authority boundary exposed by this gate: when the
+  plugin's Fixed caption side channel is actively forwarding CEA through event
+  225, the preserved Direct CEA track is no longer rendered locally as a
+  duplicate. CC1/CC2/Off cycling passed on `.232` with one renderer.
+- Completed the stock-compatible caption side channel and optional MIM Direct
+  media service without modifying `Sage.jar` or replacing stock `ffmpeg`.
+  Direct Copy leaves video/audio compressed and remuxes only when required;
+  Direct Transcode exposes the actual negotiated hardware or fallback stage.
+- Changed Direct live output from FFmpeg's HLS muxer to bounded MPEG-TS
+  segmentation with an M3U8 list. This avoids the HLS WebVTT conversion crash
+  on DVB/Teletext inputs and preserves CEA, Teletext, DVB bitmap, language, and
+  timing data in every segment. A monitor removes unlisted stale segments.
+- Deployed the corrected plugin to `.232` and passed tokenless capability and
+  session APIs, Direct Copy, full-GPU Transcode, caption continuity,
+  restart/reconnect, teardown, and Android settings-restoration gates. Stock
+  `.175` without the plugin safely retained ordinary Fixed/Push playback.
+
+- Removed the caption/MIM Direct bearer-token setting and authorization
+  requirement. Port `31910` is now an explicitly LAN-scoped interface; direct
+  media starts still require SageTV-authorized source paths, and all subsequent
+  caption/media operations retain bounded opaque reservation/session IDs.
+  The STVi no longer displays or stores an API token. Tokenless caption
+  reserve/teardown and MIM Direct capability gates passed after deployment to
+  `.232`.
+
+- Rebuilt the FFmpeg STVi as one Detailed Setup-style two-pane screen.
+  All five categories are stable stock-derived Detailed Setup rows in the
+  compact left rail. Moving focus redraws the chosen category's stock-derived
+  settings editor on the right without requiring Select or opening another
+  full-screen menu.
+  Using stable rows avoids stale setup-area context from recycled table cells;
+  generation now fails rather than silently clipping if a future sixth category
+  is added without a deliberately tested overflow design. Choice and
+  Multichoice dialogs use the stock dialog background plus private
+  option/focus/pagination widgets, so imported modules do not depend on
+  unresolved theme references. This fixes the prior bare grid, separate
+  category screens, blank choices, stale right pane, and inconsistent dialog
+  appearance on remote MiniClients.
+  The content chrome now matches stock Detailed Setup's translucent dark-gray
+  panel, white text, light-gray row separators, and scrollbar. Value controls
+  use the same measured broad right-hand focus cell and centered label as the
+  stock screen instead of a text-width underline. This final layout and its
+  choice dialog were physically verified on Vibe server `.232` and non-Pro
+  Fire TV `.25` without changing saved playback values.
+  Hardware Test results and Runtime Status now use synchronized left-aligned
+  label and value text columns, omit repeated explanatory prose, and use short
+  labels plus a normalized FFmpeg version. Runtime Status uses the complete
+  content height, so VAAPI, QSV, QSV fallback, NVENC, AMF, D3D12VA, and
+  Software all remain visible without ellipses. Read-only values are
+  non-focusable and carry no edit action, preventing Select from opening
+  Android's text-entry keyboard. An unused hardware result consistently shows
+  `Not Run` rather than the former lowercase variant.
+  Run, Export, and all read-only pipeline results now share the single
+  Hardware Test category; the redundant Hardware Test Results rail entry was
+  removed.
+  The exact `.232` / non-Pro `.25` build physically passed Run (`2 HW PASS`),
+  Export, read-only focus skipping, complete Runtime rendering, and Back to
+  Setup. Export created both a timestamped report and the stable latest JSON.
+
+- Completed Windows x64 commissioning against the stock SageTV server on
+  `.185` and non-Pro Fire TV `.25`. Hardware QSV and forced software/libx264
+  Fixed MPEG-TS playback passed audio, pause/resume, FF/REW, large skip,
+  Comskip, restart, captions, and clean teardown gates. CEA callbacks,
+  Teletext text, and DVB bitmap overlays were physically verified.
+
+- Added deterministic Windows process containment to both launcher layers.
+  The root `SageTVTranscoder.exe` owns MIM in a kill-on-close Job Object and
+  MIM owns `ffmpeg.real.exe`, so stock SageTV seek/recovery replacement and
+  STOP no longer leave orphaned encoder processes.
+
+- Verified authored and real ALADDIN discs through stock-Core native DVD
+  playback. Menus, title selection, pause/play, chapter, audio, subtitle, and
+  sustained MPEG-2/AC-3 output pass. Stock Windows Core accepting but not
+  accurately landing an exact public `Seek(long)` request on the real disc is
+  recorded as a Core/DVD-reader boundary, not a plugin failure.
+
+- Confirmed that stock SageTV's startup dump labels normal passive STVi state
+  as `Failed` in `PluginWrapper.toString()`. The actual categorized STVi was
+  enabled and imported successfully on every client connection, with no import
+  errors; no `Sage.jar` change was made.
+
+- Replaced the stock STV's single long plugin configuration list with compact
+  Playback, Hardware, Runtime, and Maintenance category screens. Each editor
+  resolves the installed Linux/Windows plugin independently, displays five
+  relevant rows per page, and retains an All Settings compatibility entry.
+
+- Added explicit **Run Hardware Test** and **Export Hardware Report** actions.
+  The bounded MIM diagnostic uses synthetic MPEG-2 input and reports decode,
+  filtering, H.264 encode, complete pipeline, and the Windows HD 4600
+  D3D11VA/QSV compatibility fallback independently. Export writes
+  credential-free timestamped and stable-latest JSON files under the plugin
+  reports directory without changing the live INI. Tests are refused while a
+  MIM transcode job is active.
+
+- Commissioned development version 0.1.3 on the isolated `.232` Vibe server.
+  SageTV loaded the new Standard-plugin JAR, stock `ffmpeg` and the live MIM
+  INI remained byte-identical, and the rebuilt Linux MIM runtime passed its
+  bounded hardware test with complete VAAPI, QSV, and software pipelines.
 
 - Documented Windows beta-plugin visibility and the safe
   `SageTVPluginsDev.xml` commissioning fallback. The source manifests were

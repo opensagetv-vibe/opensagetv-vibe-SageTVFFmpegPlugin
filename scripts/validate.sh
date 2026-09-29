@@ -18,7 +18,14 @@ test -x "$ROOT/dev.sh"
 test -x "$ROOT/update.sh"
 test -x "$ROOT/scripts/build.sh"
 test -x "$ROOT/scripts/test.sh"
+test -x "$ROOT/scripts/build_stvi.py"
 grep -Fq -- '-ProjectRoot "%~dp0."' "$ROOT/create_ai_handoff_zip.cmd"
+
+# Windows must not leave MIM/FFmpeg jobs alive when stock SageTV replaces a
+# Fixed-transcoding process during seek or stream recovery.
+grep -Fq 'JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE' "$ROOT/launcher/SageTVTranscoderLauncher.cpp"
+grep -Fq 'CREATE_SUSPENDED' "$ROOT/launcher/SageTVTranscoderLauncher.cpp"
+grep -Fq 'AssignProcessToJobObject' "$ROOT/launcher/SageTVTranscoderLauncher.cpp"
 
 if find "$ROOT" -type f \( -name 'Sage.jar' -o -name 'ffmpeg.real.ini' \) \
     -not -path "$ROOT/.deps/*" -not -path "$ROOT/build/*" -not -path "$ROOT/dist/*" \

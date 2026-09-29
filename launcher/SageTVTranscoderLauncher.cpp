@@ -56,11 +56,36 @@ int main(int argc, char** argv) {
     LocalFree(wargv);
     std::vector<wchar_t> mutableCmd(cmd.begin(),cmd.end()); mutableCmd.push_back(0);
     STARTUPINFOW si{}; si.cb=sizeof(si); PROCESS_INFORMATION pi{};
-    if(!CreateProcessW(target.wstring().c_str(), mutableCmd.data(), nullptr,nullptr,TRUE,0,nullptr,sageHome.wstring().c_str(),&si,&pi)) {
-        std::cerr << "SageTV FFmpeg Plugin launcher: CreateProcess failed " << GetLastError() << "\n"; return 126;
+    // SageTV replaces a Fixed-transcoding process by terminating this launcher.
+    // A normal parent/child relationship on Windows does not terminate the child,
+    // so MIM could otherwise survive until its FFmpeg child eventually noticed a
+    // closed output pipe.  Own MIM in a kill-on-close job: forced launcher teardown
+    // closes the last job handle and Windows terminates MIM immediately.  MIM owns
+    // ffmpeg.real in its own nested job, providing deterministic cascading cleanup.
+    HANDLE job=CreateJobObjectW(nullptr,nullptr);
+    if(!job) {
+        std::cerr << "SageTV FFmpeg Plugin launcher: CreateJobObject failed " << GetLastError() << "\n"; return 126;
+    }
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION jobInfo{};
+    jobInfo.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    if(!SetInformationJobObject(job,JobObjectExtendedLimitInformation,&jobInfo,sizeof(jobInfo))) {
+        std::cerr << "SageTV FFmpeg Plugin launcher: SetInformationJobObject failed " << GetLastError() << "\n";
+        CloseHandle(job); return 126;
+    }
+    if(!CreateProcessW(target.wstring().c_str(), mutableCmd.data(), nullptr,nullptr,TRUE,CREATE_SUSPENDED,nullptr,sageHome.wstring().c_str(),&si,&pi)) {
+        std::cerr << "SageTV FFmpeg Plugin launcher: CreateProcess failed " << GetLastError() << "\n";
+        CloseHandle(job); return 126;
+    }
+    if(!AssignProcessToJobObject(job,pi.hProcess)) {
+        std::cerr << "SageTV FFmpeg Plugin launcher: AssignProcessToJobObject failed " << GetLastError() << "\n";
+        TerminateProcess(pi.hProcess,126); CloseHandle(pi.hThread); CloseHandle(pi.hProcess); CloseHandle(job); return 126;
+    }
+    if(ResumeThread(pi.hThread)==(DWORD)-1) {
+        std::cerr << "SageTV FFmpeg Plugin launcher: ResumeThread failed " << GetLastError() << "\n";
+        TerminateProcess(pi.hProcess,126); CloseHandle(pi.hThread); CloseHandle(pi.hProcess); CloseHandle(job); return 126;
     }
     WaitForSingleObject(pi.hProcess,INFINITE); DWORD rc=1; GetExitCodeProcess(pi.hProcess,&rc);
-    CloseHandle(pi.hThread); CloseHandle(pi.hProcess); return (int)rc;
+    CloseHandle(pi.hThread); CloseHandle(pi.hProcess); CloseHandle(job); return (int)rc;
 #else
     const fs::path pluginTarget = sageHome/"plugins"/"SageTVFFmpegPlugin"/"runtime"/"ffmpeg_MIM";
     const fs::path stockTarget = sageHome/"ffmpeg";

@@ -69,6 +69,17 @@ def main() -> int:
             names = plugin_jar.namelist()
             assert any(name.startswith("org/opensagetv/vibe/ffmpeg/") for name in names)
             assert not any(name.startswith("sage/") for name in names)
+            assert "META-INF/services/sage.DVDStreamTransformProvider" in names
+            assert "org/opensagetv/vibe/ffmpeg/MimDVDCopyStreamTransformProvider.class" in names
+            assert "org/opensagetv/vibe/ffmpeg/MimDVDTranscodeStreamTransformProvider.class" in names
+            providers = plugin_jar.read(
+                "META-INF/services/sage.DVDStreamTransformProvider"
+            ).decode("utf-8").splitlines()
+            assert providers == [
+                "org.opensagetv.vibe.ffmpeg.MimDVDCopyStreamTransformProvider",
+                "org.opensagetv.vibe.ffmpeg.MimDVDTranscodeStreamTransformProvider",
+                "org.opensagetv.vibe.ffmpeg.MimDVDStreamTransformProvider",
+            ]
     finally:
         temporary.unlink(missing_ok=True)
 

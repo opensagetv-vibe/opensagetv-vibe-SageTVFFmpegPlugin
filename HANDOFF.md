@@ -1,5 +1,179 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
+## 0.1.3 release candidate (2026-09-29)
+
+Version 0.1.3 is paired with MIM 0.4.10. The affected release gate passed
+stock Sage.jar and STVi contracts, caption side-channel and Direct HTTP/session
+tests, optional DVD Copy/Transcode provider tests, Linux and Windows launcher
+builds, deterministic archives, rendered manifests, and checksums. Package
+SHA-256 values are:
+
+- JAR: `04cf63ac241a240e3d3cfda59024c09f4b687d4ba2731be1a54bd8ec2da6dea7`
+- STVi: `0476cc8555a5d43d9af9880ed631f357289317455d04700dfd7dc08788439158`
+- Linux system: `492724f0d22e0affe9895b32386988a3ab9269c993ccb8240cbd4589a2ffb8c6`
+- Windows x64 system: `3cc6091d5260dde2dc177a8ddc2790fc76812b1060528728b2b9ee4edadab68c`
+
+Per the workspace release policy, only gates affected by this plugin/runtime
+change were rerun. The broader deferred physical matrix remains visible in
+`TASKS.md`.
+
+## Direct deinterlace/full-hardware checkpoint (2026-09-28)
+
+The current plugin/MIM contract accepts `auto`, `on`, and `off` for each Direct
+Transcode session. Linux `.232` reports `full_gpu` with VAAPI for all three.
+Stock Windows `.185` reports `full_gpu` with QSV when deinterlacing is Off;
+Auto/On correctly retain the mixed fallback because Haswell QSV VPP rejects
+the interlaced surface contract. Non-Pro `.25` passed startup, hardware Android
+decode, seek, pause/resume, crash checks, and synchronized event-225 CEA with
+Off on both platforms. Linux CC1/CC2/Off visual cycling also proved one SageTV
+renderer after the Android ownership correction.
+
+The rebuilt plugin passed `dev.cmd all`; packaged JAR SHA-256 is
+`52db1548af64f1cac50459278059526b54088582d88e804961e3ecff318cc2b8`.
+The rebuilt Linux MIM deployed to `.232` is
+`79640cb17e6fd25a81920b73721cd417c8761ef50933a525a004c167481943ee`.
+The server ended with zero caption/Direct sessions and no MIM/FFmpeg process.
+Windows AC standby was restored to ten minutes and the two verified temporary
+deinterlace deployment files were removed. MIM-FIXED-003 remains open for the
+remaining DVD, growing/transition, legacy-client, and failure-fallback rows.
+
+## Caption side channel and Direct transport checkpoint (2026-09-28)
+
+MIM-FIXED-001 and MIM-FIXED-002 are complete. The Standard plugin provides a
+tokenless, LAN-scoped capability/session API with opaque bounded handles,
+source authorization through SageTV, explicit Direct Copy and Direct
+Transcode policies, status/restart/media/teardown operations, and no stock
+`Sage.jar` or stock `ffmpeg` replacement.
+
+The Direct service uses FFmpeg's segment muxer with MPEG-TS segments and an
+M3U8 list. Unlike the HLS muxer, it does not force DVB or Teletext subtitle
+streams through WebVTT, so video, audio, CEA, Teletext, DVB bitmap, language,
+and timing metadata survive. The live playlist is bounded and a monitor
+removes segments that are no longer listed after the retention interval.
+
+The corrected JAR is deployed on `.232` with SHA-256
+`35352767f1954c49782d23646f1f38da907c8ec4adab9709ed05e16e7eb473f9`.
+Non-Pro `.25` passed Copy, full-GPU Transcode, CEA, Teletext, DVB, pause,
+restart/reconnect, and teardown through the Android client. Stock `.175`
+without the plugin reported the optional path unavailable and continued on
+ordinary stock Fixed/Push without a crash. MIM-FIXED-003 remains open for the
+broader stock-Windows, plugin-version/failure, legacy-client, and cross-player
+matrix.
+
+The final `dev.cmd all` gate passed stock-STV contracts, stock-`Sage.jar`
+source contracts, Java/plugin/caption/Direct HTTP and session tests, Linux and
+Windows launcher builds, and deterministic plugin archives/manifests. Its
+packaged release-candidate JAR SHA-256 is
+`465a992bf34a6abe0befba289980dcd9930ff54dd0f82f44f7bc3babaeae80b8`;
+the physically tested deployed `.232` JAR remains the separately recorded
+build above because this final gate did not redeploy or change the server.
+
+## LAN-scoped caption and MIM Direct API (2026-09-27)
+
+The caption/MIM Direct HTTP interface no longer has a bearer-token setting or
+authentication header. It is intended only for a trusted LAN. Direct starts
+remain limited by SageTV library/source authorization, and short-lived opaque
+reservation/session identifiers still scope caption, status, restart, media,
+and teardown operations. The regenerated STVi exposes only enable, bind
+address, and port controls.
+
+All plugin Java, STVi, launcher, caption, and MIM Direct tests pass. The
+tokenless JAR SHA-256 is
+`6865b7c503a496a209d938d61cec7f683d787a139c9ed9b64922e199c8cd961a`.
+It is deployed on `.232`; unauthenticated capability, caption reservation, and
+teardown calls passed with the service reporting `ready` and MIM Direct
+available.
+
+## Windows stock-server acceptance (2026-09-26)
+
+The current development plugin was commissioned on the stock Windows SageTV
+server at `.185` and physically validated with non-Pro Fire TV `.25`. The
+stock `Sage.jar` remained unchanged at SHA-256
+`d76ded981b9bc51e25b9cec821b6abeb771b46c2996dc45e453349b5e703fcb0`.
+Commissioned component hashes are:
+
+- Standard-plugin JAR: `5edb191e7bb5e2812bcb2e054e84e69b58cc7dc661ed765f71c8db1d2d4209c7`
+- categorized STVi: `671c0b4d33b880c946477e54169b16671a2d4ea1bb85ffa6dfb47184de9e4679`
+- root Windows launcher: `c585ab11d3da30364de9e5da7e6f4de2654ba6db9d464c8d540b807bdd3a095e`
+- Windows MIM: `b188e33cb9a85c831bb74dcdac3569209afbad31ec220b877cd454f0008e15e1`
+- plugin FFmpeg runtime: `9f2b8005e96226c0ce36e41b5a53bdb8f4050a3c45dfef23812cfae4f9101d46`
+- restored runtime INI: `c951637c96fa8651afcf01a3746525c606a571c6c3eba237f14a86845256ea54`
+
+The exported synthetic hardware report is
+`plugins/SageTVFFmpegPlugin/reports/OpenSageTV-Vibe-Hardware-Test-20260926-163603.json`
+(SHA-256 `fbdd7a91c4f54359e845d647c36729e4579bb7b464946a48d50baf8b2bd65284`).
+Hardware Fixed playback used QSV; an explicit temporary `backend=software`
+gate selected `libx264`, passed real MPEG-TS/AAC playback, FF/REW, and
+pause/resume, then restored the INI byte-for-byte. STOP left zero launcher,
+MIM, or FFmpeg processes and Android reported no crash signature.
+
+Physical evidence under the Android project's `artifacts/firetv` includes:
+
+- `windows185-fixed-full-matrix-20260926.log`
+- `windows185-fixed-software-fallback-20260926.log`
+- `windows185-fixed-cea-stv-legacy-20260926.log`
+- `windows185-fixed-teletext-local-20260926.log`
+- `windows185-fixed-dvb-bitmap-20260926.log`
+- `windows185-stock-native-authored-dvd-20260926-retry.json`
+- `windows185-stock-native-aladdin-boundary-20260926.json`
+- `windows185-stock-native-aladdin-8m-20260926-retry.json`
+
+The authored disc passed native startup/menu/title, pause/play, FF/REW,
+chapter, audio, and subtitle selection. Real ALADDIN passed the supported
+native MPEG-2/AC-3 cadence and navigation gates. Stock Windows Core accepted
+the public 480,000 ms DVD `Seek(long)` request but did not land accurately in
+two bounded attempts; this is a stock Core/DVD-reader limitation. Fixed file
+transcoding and native disc playback are intentionally separate on stock Core,
+which has no transformed-DVD provider SPI.
+
+The startup dump shows the registered STVi as `state=Failed`, but this is a
+stock diagnostic formatting defect: state 4 (`PLUGIN_STATE_PASSIVE`) falls
+through to the word `Failed` in `PluginWrapper.toString()`. The real failure
+API tests only state 3. Every client connection successfully imported the
+commissioned STVi and ran its auto-cleanup hook with no import exception, so
+the server Core was not patched for this cosmetic log output.
+
+## Categorized stock-STV interface (unreleased)
+
+The generated STVi now presents seven focused category editors plus an All
+Settings fallback instead of one long stock plugin list. Generation remains
+deterministic against the stock SageTV7 STV. On 2026-09-26 the generated STVi
+passed structural and Java smoke tests and was commissioned on stock Windows
+server `.185`; the non-Pro Fire TV physically rendered Playback & Transcoding
+and Hardware Setup, Back returned to the category list, and direct category
+transitions no longer retained the previous title. The commissioned STVi
+SHA-256 is
+`671c0b4d33b880c946477e54169b16671a2d4ea1bb85ffa6dfb47184de9e4679`.
+
+The recoverable pre-deployment copy is under
+`/mnt/user/appdata/sagetv-vibe-server-u26-gpu-j11/.component-backups/stvi-self-contained-20260926-105903`.
+
+## Hardware diagnostic and export (unreleased)
+
+Development version 0.1.3 adds explicit **Run Hardware Test** and **Export
+Hardware Report** plugin actions. The test calls MIM's bounded synthetic
+`--mim-hardware-test`; it does not read recordings or edit the live INI. The
+exporter writes credential-free timestamped JSON plus
+`plugins/SageTVFFmpegPlugin/reports/OpenSageTV-Vibe-Hardware-Test-latest.json`
+and exposes the timestamped server path through `hardwareTest.reportPath`.
+
+On 2026-09-26 this development build and the matching rebuilt Linux MIM 0.4.9
+runtime were installed on the isolated `.232` server. SageTV logged
+`started version=0.1.3-dev`; the container remained healthy and MIM had no
+active job after the test. Exact commissioned SHA-256 values are:
+
+- plugin JAR: `5edb191e7bb5e2812bcb2e054e84e69b58cc7dc661ed765f71c8db1d2d4209c7`
+- MIM: `b4b3ec83010f90c6a923245b8dfda94cbb1795eb33d9f15918c24f92f95a959b`
+- root/canonical launcher: `4d9a5669795efb9003f270d01d439ffe9cd6c102d0b857da2eaaab1d741e9667`
+- preserved stock FFmpeg: `bdf6aabffdba7411edff8d36c389d695257fcdf823d196020176e117612862f6`
+- preserved live INI: `70141e19d0d68d7540f6c8eac85e11efeaac1b47e587bcad9eaef927f3aa38a3`
+
+The synthetic hardware test passed complete decode/filter/encode/pipeline
+stages for VAAPI and QSV plus the software fallback. NVENC was correctly
+unavailable because this host has no NVIDIA runtime/device. The recoverable
+pre-update backup is
+`/mnt/user/appdata/sagetv-vibe-server-u26-gpu-j11/.component-backups/ffmpeg-plugin-20260926-152331`.
+
 ## Provider-neutral DVD transform integration (2026-09-20)
 
 Updated SageTV Core exposes a small optional `DVDStreamTransformProvider` SPI.
@@ -266,10 +440,116 @@ moved the timeline back about 41 seconds with healthy A/V but did not increment
 the newer `serverSeekSequence` counter. Neither caused playback or transcoder
 failure.
 
+### Detailed Setup-style STVi repair - 2026-09-26
+
+The custom bare category grid was replaced after physical non-Pro Fire TV
+testing showed that its labels rendered but did not expose a usable remote
+selection path. `scripts/build_stvi.py` now derives each category row and its
+focused artwork from stock SageTV7 Detailed Setup, uses an explicit two-pane
+layout that does not depend on imported Theme inheritance, and routes Select
+through an action to the stock-derived configuration editor. Editors use five
+rows per page, explicit foreground/focus styling, and an opaque content pane.
+`scripts/test_stvi.py` rejects a return to the bare grid and requires every
+category to have a focus widget and activation target. Choice and Multichoice
+dialogs now have explicit layout, text, background, and focus rendering rather
+than relying on external stock theme/panel references. On `.185` with non-Pro
+Fire TV `.25`, category Select opened Playback & Transcoding and Hardware
+Setup; the first Boolean control toggled through the stock Plugin API and was
+restored to its original `true` value. Audio Mode rendered `copy`, `ac3`, and
+`inherit`, remote focus moved between choices, and Back canceled without
+changing the original `copy` value. Hardware Backend likewise rendered its
+available choices. The heading repaint guard prevented the prior category
+title from remaining under the next editor title.
+
+On 2026-09-27 the same generated STVi was installed atomically on Vibe test
+server `.232`. Its deployed SHA-256 is
+`160fdd47cd205ca4ff12dbe9da98ed09c61e769b29dd4e595597b6465a8544f8`;
+the already-installed JAR and Linux launcher matched the current package at
+`5edb191e7bb5e2812bcb2e054e84e69b58cc7dc661ed765f71c8db1d2d4209c7`
+and `4d9a5669795efb9003f270d01d439ffe9cd6c102d0b857da2eaaab1d741e9667`.
+The previous STVi remains recoverable under
+`.component-backups/ffmpeg-stvi-detailed-setup-20260927-1`. After one
+controlled restart to enable the authenticated Core MCP LAN listener, `.232`
+returned healthy, the non-Pro Fire TV `.25` reconnected, the category menu and
+Audio Mode choices rendered correctly, and Back left `MIM Enabled=true` and
+`Audio Mode=copy` unchanged. `.232` is now the default server in the ignored
+local Android commissioning configuration.
+
+The `.232` commissioning was then repeated after converting the category UI
+to a single Detailed Setup-style screen. All seven categories render as stable
+stock-derived rows in the compact left rail. Select keeps that rail visible
+and redraws the matching settings in the right pane. The stable rows are
+intentional: recycled table cells retained stale setup-area context on remote
+MiniClients. Generation fails if a future ninth category is added until a
+physical-device-tested overflow rail is supplied, rather than silently
+clipping it. Native focus artwork, the stock dialog background, and private
+choice pagination render correctly without stock references `6454`-`6461`.
+
+The final 2026-09-27 non-Pro Fire TV `.25` gate selected `Hardware Setup` and
+`Hardware Availability`; each changed the right pane in place, while the full
+category rail remained visible. The Hardware Backend choice dialog opened in
+the stock Detailed Setup style and Back closed it without changing `auto`.
+The deployed STVi SHA-256 is
+`2114b7bd0a7fcdf1efb590cc840f88c87a994f2ed055387e044f04865eb87b6c`.
+Its immediately preceding version remains recoverable under
+`.component-backups/ffmpeg-stvi-stock-selection-20260927-0625`.
+
+The last physical comparison used stock Detailed Setup's focused value cell as
+the reference. The plugin value cell now begins at the same horizontal bound,
+has the same broad selection glow, and centers `True`, `auto`, `copy`, and
+other values instead of focusing only their text width. The title and editor
+labels no longer inherit the dark text shadow. The compact Choice dialog,
+translucent dark-gray content, light-gray separators, and right-hand scrollbar
+were also visible on `.25`. Back canceled the Deinterlace dialog without
+changing `auto`; the observed `MIM Enabled=true` and `Audio Mode=copy` values
+also remained unchanged. Generated validation aliases were removed after the
+gate; only the installed canonical STVi and its recoverable component backup
+remain.
+
 Explicit publication approval was received. The public source/release is at
 `opensagetv-vibe/opensagetv-vibe-SageTVFFmpegPlugin`, the required MIM 0.4.9
 runtime assets are published separately, and the four beta catalog manifests
 are submitted to `OpenSageTV/sagetv-plugin-repo` as pull request #124.
+
+The final `.232`/non-Pro refinement on 2026-09-27 made focus movement update
+the right pane without Select, changed the chrome to the same darker
+translucent Detailed Setup palette, widened the stable left rail enough for
+every category, and converted Hardware Test results and Runtime Status into
+compact read-only label/value tables. Repeated row help was removed, runtime
+labels were shortened, and the FFmpeg banner is normalized to its version
+token for display. The complete local suite passed before deployment. The
+installed JAR SHA-256 is
+`c69603afc5b8346972ec93db2cfce85c30e0f99abe255c2c7231edc98cf8f1c1`;
+the STVi SHA-256 is
+`819fa90a60ab737415ed5caedb303edb03527fc7508fed905de49860e650ef7c`.
+The prior pair remains recoverable under
+`.component-backups/ffmpeg-ui-20260927-132418`.
+Run, Export, and every read-only hardware pipeline result now share the single
+Hardware Test category. The separate Hardware Test Results rail entry was
+removed because only Run and Export are actionable.
+On the final non-Pro gate, remote focus changed categories without Select,
+right-arrow skipped every read-only status cell, Select did not open the
+Android keypad, and Back returned to Setup. Running Hardware Test from the TV
+completed successfully and displayed `2 HW passed`; the result table showed
+VAAPI and QSV `pass`, QSV fallback `unsupported`, NVENC `fail` because the
+container has no CUDA device/library, and AMF `unsupported`. The NVENC value is
+the authoritative MIM synthetic-pipeline result rather than a UI inference.
+
+The final two-column dashboard refinement was rebuilt and commissioned on
+`.232` / non-Pro Fire TV `.25` on 2026-09-27. Hardware Test and Runtime Status
+now use separate synchronized label/value text objects, both left aligned;
+they no longer depend on padding glyphs or `gFontNameClock`. Runtime Status
+uses its full content height and visibly includes VAAPI, QSV, QSV Fallback,
+NVENC, AMF, D3D12VA, and Software without clipping or ellipses. Hardware Test
+physically passed Run (`2 HW PASS`), Export, non-focusable result navigation,
+and Back to Setup. The exported files include
+`OpenSageTV-Vibe-Hardware-Test-20260927-202754.json` and the stable
+`OpenSageTV-Vibe-Hardware-Test-latest.json`. The installed JAR SHA-256 is
+`b2ef272786df93f6bafa1f955cd5a28ddba67342dadaa476c146408af02a16d1` and
+the STVi SHA-256 is
+`6229120c578f2f88cf8524186600315a39b1f893155846c7aa125d826ecf2c59`.
+The immediately preceding pair remains recoverable under
+`.component-backups/ffmpeg-ui-20260927-152043`.
 
 ### Windows catalog commissioning - 2026-09-22
 

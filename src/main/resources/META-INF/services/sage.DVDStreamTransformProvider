@@ -1,1 +1,3 @@
+org.opensagetv.vibe.ffmpeg.MimDVDCopyStreamTransformProvider
+org.opensagetv.vibe.ffmpeg.MimDVDTranscodeStreamTransformProvider
 org.opensagetv.vibe.ffmpeg.MimDVDStreamTransformProvider

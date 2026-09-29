@@ -9,6 +9,10 @@ final class RuntimePaths {
     final Path pluginHome;
     final Path runtimeDir;
     final Path launcherDir;
+    final Path reportDir;
+    final Path statusDir;
+    final Path captionPoolDir;
+    final Path directMediaDir;
     final Path mimExecutable;
     final Path ffmpegExecutable;
     final Path ffprobeExecutable;
@@ -23,6 +27,10 @@ final class RuntimePaths {
         this.pluginHome = this.sageHome.resolve("plugins").resolve("SageTVFFmpegPlugin");
         this.runtimeDir = pluginHome.resolve("runtime");
         this.launcherDir = pluginHome.resolve("launcher");
+        this.reportDir = pluginHome.resolve("reports");
+        this.statusDir = runtimeDir.resolve("cache").resolve("status");
+        this.captionPoolDir = statusDir.resolve("caption-pool");
+        this.directMediaDir = runtimeDir.resolve("cache").resolve("direct-media");
         this.mimExecutable = runtimeDir.resolve(windows ? "ffmpeg_MIM.exe" : "ffmpeg_MIM");
         this.ffmpegExecutable = runtimeDir.resolve(windows ? "ffmpeg.real.exe" : "ffmpeg.real");
         this.ffprobeExecutable = runtimeDir.resolve(windows ? "ffprobe.exe" : "ffprobe");
