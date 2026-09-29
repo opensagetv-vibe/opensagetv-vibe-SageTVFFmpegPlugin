@@ -50,6 +50,10 @@ The Windows `.185` stock-server validation is complete and recorded in
     pause/resume, hardware-client decode, STV CEA callback, teardown, and
     zero-orphan evidence. Linux Auto/On also use full-GPU VAAPI; Windows
     Auto/On truthfully report the Haswell QSV VPP mixed fallback.
+  - [x] Prove Linux active/growing Direct Transcode startup, bounded live-edge
+    seek, server-owned REW/FF recovery, and two channel transitions on non-Pro
+    `.25` / `.232`, with retained ownership, clean teardown, and all 103
+    settings restored.
 
 The explicitly approved v0.1.3 GitHub prerelease is published with all four
 verified plugin/runtime packages. The SageTV catalog update is submitted in

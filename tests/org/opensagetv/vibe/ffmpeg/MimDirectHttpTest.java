@@ -69,6 +69,9 @@ public final class MimDirectHttpTest {
                 "sleep 2\n";
         Files.write(paths.mimExecutable, script.getBytes("UTF-8"));
         paths.mimExecutable.toFile().setExecutable(true, false);
+        Files.write(paths.ffprobeExecutable,
+                "#!/bin/sh\nprintf '1920,1080\\n'\n".getBytes("UTF-8"));
+        paths.ffprobeExecutable.toFile().setExecutable(true, false);
         final Path source = home.resolve("fixture with spaces.ts");
         Files.write(source, new byte[]{0x47, 0x40, 0, 0x10});
 
@@ -95,9 +98,10 @@ public final class MimDirectHttpTest {
             check(http("GET", apiPort, "/v1/dvd/status?mode=invalid", null).status == 400,
                     "invalid DVD status mode was accepted");
             String query = "?source=" + URLEncoder.encode(source.toString(), "UTF-8") +
-                    "&mode=copy&startMs=0";
+                    "&mode=copy&active=true&startMs=0";
             Response started = http("POST", apiPort, "/v1/direct/start" + query, null);
-            check(started.status == 200 && started.body.contains("\"state\":\"ready\""),
+            check(started.status == 200 && started.body.contains("\"state\":\"ready\"") &&
+                    started.body.contains("\"active\":true"),
                     started.body);
             String token = field(started.body, "sessionToken");
             String mediaUrl = field(started.body, "mediaUrl");

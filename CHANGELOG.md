@@ -2,6 +2,17 @@
 
 ## 0.1.3 - 2026-09-29
 
+- Fixed plugin-owned Direct Transcode startup and seeking for active/growing
+  recordings. The active-file hint now reaches MIM, a stale SageTV active hint
+  gets one bounded completed-file retry, readiness requires a listed nonempty
+  FFprobe-readable segment, and repeated MPEG-TS program/global FFprobe records
+  are accepted. Out-of-range live seeks are bounded to the currently available
+  source duration with a four-second preroll and return the effective timeline
+  anchor to the client.
+- Physically validated the affected Linux `.232` / non-Pro `.25` path with
+  hardware H.264/AC-3 output, a 24-hour live-edge request clamped to playable
+  media, REW/FF recovery, two channel transitions, retained Direct Transcode
+  ownership, clean teardown, and restoration of all 103 client settings.
 - Completed the Linux/Windows Direct deinterlace policy gate. Linux `.232`
   reports full-GPU VAAPI for Auto, On, and Off; stock Windows `.185` reports
   full-GPU QSV for Off and the expected mixed fallback for Auto/On. The Off

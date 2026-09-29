@@ -1,8 +1,10 @@
 package org.opensagetv.vibe.ffmpeg;
 
 import java.io.Closeable;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +39,7 @@ final class MimDirectSessionService implements Closeable {
     static final int MAX_SESSIONS = 4;
     static final int PLAYLIST_SEGMENTS = 90;
     static final long RESTART_HANDOFF_GRACE_MS = 15_000L;
+    static final long LIVE_EDGE_PREROLL_MS = 4_000L;
     private static final long UNLISTED_SEGMENT_GRACE_MS = 15_000L;
     private static final long ABANDONED_SESSION_MS = 6L * 60L * 60L * 1000L;
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -93,6 +96,11 @@ final class MimDirectSessionService implements Closeable {
 
     Session create(String sourceValue, String mode, long startMs,
                    String deinterlaceValue) throws IOException {
+        return create(sourceValue, mode, startMs, deinterlaceValue, false);
+    }
+
+    Session create(String sourceValue, String mode, long startMs,
+                   String deinterlaceValue, boolean active) throws IOException {
         if (!enabled) throw new IllegalStateException("mim_direct_disabled");
         String selected = mode == null ? "" : mode.trim().toLowerCase();
         if (!"copy".equals(selected) && !"transcode".equals(selected))
@@ -116,6 +124,7 @@ final class MimDirectSessionService implements Closeable {
             if (captionReservation == null)
                 throw new IllegalStateException("direct_caption_slot_unavailable");
         }
+        final long effectiveStartMs = boundedStartMs(source, startMs);
         final Session session;
         try {
             synchronized (this) {
@@ -128,7 +137,7 @@ final class MimDirectSessionService implements Closeable {
                     throw new IOException("unsafe_direct_session_path");
                 Files.createDirectories(directory);
                 session = new Session(token, source, selected, deinterlace,
-                        startMs, directory,
+                        active, startMs, effectiveStartMs, directory,
                         captionReservation);
                 sessions.put(token, session);
             }
@@ -141,13 +150,81 @@ final class MimDirectSessionService implements Closeable {
         }
         try {
             session.launch();
-            session.awaitPlaylist(15000L);
+            try {
+                session.awaitPlaylist(15000L);
+            } catch (IOException firstStartupFailure) {
+                // SageTV's timeshift bit is advisory. During a live-program
+                // transition it can still describe the just-closed recording
+                // as active. MIM intentionally exits an -activefile job with
+                // no output in that state. Retry that one proven condition
+                // once as a completed file instead of abandoning the owned
+                // transport and falling all the way back to MiniClient Pull.
+                if (!session.retryCompletedAfterStaleActiveHint())
+                    throw firstStartupFailure;
+                session.awaitPlaylist(15000L);
+            }
             session.claimCaption(3000L);
             return session;
         } catch (IOException failure) {
             release(session.token);
             throw failure;
         }
+    }
+
+    /**
+     * Bound an owned seek to a playable point in the media that currently
+     * exists. This is especially important for growing recordings: MIM can
+     * successfully recover from an out-of-range {@code -ss}, but the client
+     * must be told the effective offset or SageTV's timeline remains at the
+     * impossible requested value. Keep a small preroll so the replacement HLS
+     * representation contains enough A/V to open and continue growing.
+     */
+    private long boundedStartMs(Path source, long requestedStartMs) {
+        if (requestedStartMs <= 0L || !Files.isRegularFile(paths.ffprobeExecutable))
+            return requestedStartMs;
+        Process probe = null;
+        try {
+            probe = new ProcessBuilder(paths.ffprobeExecutable.toString(),
+                    "-v", "error", "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1",
+                    source.toString()).redirectErrorStream(true).start();
+            // A duration-only probe emits only a few bytes. Wait first so the
+            // timeout also bounds a stuck probe instead of blocking forever
+            // while reading its still-open stdout pipe.
+            if (!probe.waitFor(5000L, TimeUnit.MILLISECONDS)) {
+                probe.destroyForcibly();
+                return requestedStartMs;
+            }
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            InputStream input = probe.getInputStream();
+            byte[] buffer = new byte[256];
+            int count;
+            while ((count = input.read(buffer)) >= 0 && output.size() < 4096)
+                output.write(buffer, 0, Math.min(count, 4096 - output.size()));
+            input.close();
+            if (probe.exitValue() != 0) return requestedStartMs;
+            String[] lines = new String(output.toByteArray(), StandardCharsets.UTF_8)
+                    .trim().split("\\R");
+            for (String line : lines) {
+                try {
+                    double seconds = Double.parseDouble(line.trim());
+                    if (Double.isNaN(seconds) || Double.isInfinite(seconds) || seconds <= 0.0)
+                        continue;
+                    long durationMs = Math.max(0L, Math.round(seconds * 1000.0));
+                    if (requestedStartMs >= durationMs)
+                        return Math.max(0L, durationMs - LIVE_EDGE_PREROLL_MS);
+                    return requestedStartMs;
+                } catch (NumberFormatException ignored) { }
+            }
+        } catch (IOException ignored) {
+            return requestedStartMs;
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            return requestedStartMs;
+        } finally {
+            if (probe != null && probe.isAlive()) probe.destroyForcibly();
+        }
+        return requestedStartMs;
     }
 
     synchronized Session get(String token) { return sessions.get(token); }
@@ -178,7 +255,7 @@ final class MimDirectSessionService implements Closeable {
                 deinterlaceValue.trim().length() == 0
                 ? current.deinterlace : normalizeDeinterlace(deinterlaceValue);
         Session replacement = create(current.source.toString(), current.mode,
-                startMs, replacementPolicy);
+                startMs, replacementPolicy, current.active);
         retireForHandoff(token);
         return replacement;
     }
@@ -270,6 +347,8 @@ final class MimDirectSessionService implements Closeable {
         final Path source;
         final String mode;
         final String deinterlace;
+        final boolean active;
+        final long requestedStartMs;
         final long startMs;
         final Path directory;
         final Path playlist;
@@ -281,12 +360,15 @@ final class MimDirectSessionService implements Closeable {
         volatile String state = "starting";
         volatile String error = "";
         volatile String captionSessionToken = "";
+        volatile boolean activeFileApplied;
 
         Session(String token, Path source, String mode, String deinterlace,
-                long startMs, Path directory,
+                boolean active, long requestedStartMs, long startMs, Path directory,
                 String captionReservationToken) {
             this.token = token; this.source = source; this.mode = mode;
             this.deinterlace = deinterlace;
+            this.active = active;
+            this.requestedStartMs = requestedStartMs;
             this.startMs = startMs; this.directory = directory;
             this.captionReservationToken = captionReservationToken == null
                     ? "" : captionReservationToken;
@@ -294,38 +376,65 @@ final class MimDirectSessionService implements Closeable {
         }
 
         void launch() throws IOException {
-            List<String> command = command();
+            launch(active);
+        }
+
+        private void launch(boolean useActiveFile) throws IOException {
+            List<String> command = command(useActiveFile);
             Path stderr = directory.resolve("mim-stderr.log");
             ProcessBuilder builder = new ProcessBuilder(command);
             builder.directory(paths.sageHome.toFile());
             builder.redirectOutput(ProcessBuilder.Redirect.appendTo(directory.resolve("mim-stdout.log").toFile()));
             builder.redirectError(ProcessBuilder.Redirect.appendTo(stderr.toFile()));
-            process = builder.start();
+            final Process launchedProcess = builder.start();
+            process = launchedProcess;
+            activeFileApplied = useActiveFile;
+            exitCode = Integer.MIN_VALUE;
+            finishedAtMs = 0L;
+            error = "";
             state = "running";
             Thread monitor = new Thread(new Runnable() {
                 public void run() {
+                    int launchedExitCode = Integer.MIN_VALUE;
+                    String launchedError = "";
                     try {
-                        while (!process.waitFor(5L, TimeUnit.SECONDS))
+                        while (!launchedProcess.waitFor(5L, TimeUnit.SECONDS))
                             cleanupUnlistedSegments();
-                        exitCode = process.exitValue();
+                        launchedExitCode = launchedProcess.exitValue();
                         cleanupUnlistedSegments();
                     }
                     catch (InterruptedException interrupted) {
-                        Thread.currentThread().interrupt(); error = "monitor_interrupted";
+                        Thread.currentThread().interrupt();
+                        launchedError = "monitor_interrupted";
                     }
-                    finishedAtMs = System.currentTimeMillis();
-                    state = exitCode == 0 ? "complete" : "failed";
-                    if (exitCode != 0 && error.length() == 0) error = "mim_exit_" + exitCode;
+                    synchronized (Session.this) {
+                        // A stale-active retry can install a replacement
+                        // process before this monitor publishes its result.
+                        // Never let the retired process overwrite the active
+                        // attempt's observable lifecycle state.
+                        if (process != launchedProcess) return;
+                        exitCode = launchedExitCode;
+                        if (launchedError.length() != 0) error = launchedError;
+                        finishedAtMs = System.currentTimeMillis();
+                        state = exitCode == 0 ? "complete" : "failed";
+                        if (exitCode != 0 && error.length() == 0)
+                            error = "mim_exit_" + exitCode;
+                    }
                 }
             }, "vibe-mim-direct-" + token.substring(0, 8));
             monitor.setDaemon(true);
             monitor.start();
         }
 
-        private List<String> command() {
+        private List<String> command(boolean useActiveFile) {
             List<String> command = new ArrayList<String>();
             Collections.addAll(command, paths.mimExecutable.toString(), "-hide_banner",
                     "-loglevel", "warning", "-sagetvdirect", "-re");
+            // MIM's active-file contract enables bounded probing, growing-file
+            // following, and the safer live decode policy. Without it, a
+            // newly tuned recording can reach its current edge during GPU
+            // startup and leave behind a short, undecodable H.264 fragment.
+            if (useActiveFile) command.add("-activefile");
             if ("transcode".equals(mode)) {
                 command.add("-sagetvdeinterlace");
                 command.add(deinterlace);
@@ -368,6 +477,39 @@ final class MimDirectSessionService implements Closeable {
             return command;
         }
 
+        /**
+         * Retry only MIM's clean, media-less active-file exit. A running job,
+         * a nonzero child failure, or a completed playable segment is not a
+         * stale SageTV hint and must retain the original startup failure.
+         */
+        private boolean retryCompletedAfterStaleActiveHint() throws IOException {
+            Process attempted = process;
+            if (!active || !activeFileApplied || attempted == null ||
+                    attempted.isAlive()) return false;
+            int attemptedExit;
+            try { attemptedExit = attempted.exitValue(); }
+            catch (IllegalThreadStateException stillRunning) { return false; }
+            if (attemptedExit != 0 || playlistReady()) return false;
+            clearStartupArtifacts();
+            state = "retrying_completed_after_stale_active_hint";
+            launch(false);
+            return true;
+        }
+
+        private void clearStartupArtifacts() throws IOException {
+            try (DirectoryStream<Path> entries = Files.newDirectoryStream(directory)) {
+                for (Path entry : entries) {
+                    Path name = entry.getFileName();
+                    String value = name == null ? "" : name.toString();
+                    if ("stream.m3u8".equals(value) ||
+                            "mim-stdout.log".equals(value) ||
+                            "mim-stderr.log".equals(value) ||
+                            value.matches("seg_[0-9]{6}\\.ts"))
+                        Files.deleteIfExists(entry);
+                }
+            }
+        }
+
         /** Keep the live playlist bounded without reusing segment filenames. */
         void cleanupUnlistedSegments() {
             if (!Files.isRegularFile(playlist)) return;
@@ -398,7 +540,12 @@ final class MimDirectSessionService implements Closeable {
         void awaitPlaylist(long timeoutMs) throws IOException {
             long deadline = System.currentTimeMillis() + timeoutMs;
             while (System.currentTimeMillis() < deadline) {
-                if (Files.isRegularFile(playlist) && playlistSize() > 0L) {
+                // FFmpeg creates the M3U8 before its first MPEG-TS segment is
+                // publishable. A nonempty, header-only playlist is not a
+                // playable session and Media3 correctly rejects it as a
+                // malformed HLS container. Do not expose the media URL until
+                // at least one safe listed segment exists and contains data.
+                if (playlistReady()) {
                     state = "ready"; return;
                 }
                 Process active = process;
@@ -410,6 +557,74 @@ final class MimDirectSessionService implements Closeable {
                 }
             }
             throw new IOException("MIM Direct playlist startup timed out");
+        }
+
+        private boolean playlistReady() {
+            if (!Files.isRegularFile(playlist) || playlistSize() <= 0L) return false;
+            try {
+                for (String line : Files.readAllLines(playlist, StandardCharsets.UTF_8)) {
+                    String value = line == null ? "" : line.trim();
+                    if (!value.matches("seg_[0-9]{6}\\.ts")) continue;
+                    Path segment = directory.resolve(value).normalize();
+                    if (segment.startsWith(directory) && Files.isRegularFile(segment) &&
+                            Files.size(segment) > 0L && segmentPlayable(segment))
+                        return true;
+                }
+            } catch (IOException incompleteWrite) {
+                // The writer may be replacing the live manifest. Retry until
+                // the bounded startup deadline instead of exposing it early.
+            }
+            return false;
+        }
+
+        private boolean segmentPlayable(Path segment) {
+            // Copy sessions retain the source codecs and can include audio-only
+            // media. For Transcode, however, the contract promises H.264 video.
+            // Prove that FFprobe can read nonzero dimensions before exposing
+            // the URL. This rejects the small TS fragment produced when a GPU
+            // encoder fails during its first frame even if MIM contains the
+            // child failure as a clean wrapper exit.
+            if (!"transcode".equals(mode)) return true;
+            if (!Files.isRegularFile(paths.ffprobeExecutable)) return false;
+            Process probe = null;
+            try {
+                probe = new ProcessBuilder(paths.ffprobeExecutable.toString(),
+                        "-v", "error", "-select_streams", "v:0",
+                        "-show_entries", "stream=width,height",
+                        "-of", "csv=p=0", segment.toString())
+                        .redirectErrorStream(true).start();
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                InputStream input = probe.getInputStream();
+                byte[] buffer = new byte[512];
+                int count;
+                while ((count = input.read(buffer)) >= 0 && output.size() < 4096)
+                    output.write(buffer, 0, Math.min(count, 4096 - output.size()));
+                input.close();
+                if (!probe.waitFor(2000L, TimeUnit.MILLISECONDS)) {
+                    probe.destroyForcibly();
+                    return false;
+                }
+                if (probe.exitValue() != 0) return false;
+                String dimensions = new String(output.toByteArray(),
+                        StandardCharsets.UTF_8).trim();
+                // MPEG-TS FFprobe output can list the selected stream once
+                // under its program and once in the global stream table,
+                // separated by a blank line. Any proven nonzero-dimension
+                // video line is sufficient; requiring the entire output to
+                // be one record rejects valid broadcast TS segments.
+                for (String line : dimensions.split("\\R")) {
+                    if (line.trim().matches("[1-9][0-9]*,[1-9][0-9]*"))
+                        return true;
+                }
+                return false;
+            } catch (IOException invalidMedia) {
+                return false;
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                return false;
+            } finally {
+                if (probe != null && probe.isAlive()) probe.destroyForcibly();
+            }
         }
 
         void claimCaption(long timeoutMs) throws IOException {
@@ -480,7 +695,10 @@ final class MimDirectSessionService implements Closeable {
                     ",\"sessionToken\":\"" + jsonEscape(token) + "\"" +
                     ",\"mode\":\"" + jsonEscape(mode) + "\"" +
                     ",\"deinterlace\":\"" + jsonEscape(deinterlace) + "\"" +
+                    ",\"active\":" + active +
+                    ",\"activeFileApplied\":" + activeFileApplied +
                     ",\"state\":\"" + jsonEscape(state) + "\"" +
+                    ",\"requestedStartMs\":" + requestedStartMs +
                     ",\"startMs\":" + startMs +
                     ",\"mediaUrl\":\"/v1/direct/media/" + jsonEscape(token) + "/stream.m3u8\"" +
                     ",\"captionSessionToken\":\"" +

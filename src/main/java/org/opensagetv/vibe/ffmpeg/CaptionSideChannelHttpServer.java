@@ -116,7 +116,7 @@ final class CaptionSideChannelHttpServer {
                 MimDirectSessionService.Session session = direct.create(
                         required(query, "source"), required(query, "mode"),
                         number(query.get("startMs"), 0L, 0L, 14L * 86400000L),
-                        query.get("deinterlace"));
+                        query.get("deinterlace"), booleanValue(query.get("active"), false));
                 send(exchange, 200, session.json());
             } catch (IllegalArgumentException invalid) {
                 send(exchange, 400, error(invalid.getMessage()));
@@ -331,6 +331,13 @@ final class CaptionSideChannelHttpServer {
         } catch (NumberFormatException invalid) {
             throw new IllegalArgumentException("invalid_number");
         }
+    }
+
+    private static boolean booleanValue(String value, boolean fallback) {
+        if (value == null || value.length() == 0) return fallback;
+        if ("true".equalsIgnoreCase(value) || "1".equals(value)) return true;
+        if ("false".equalsIgnoreCase(value) || "0".equals(value)) return false;
+        throw new IllegalArgumentException("invalid_boolean");
     }
 
     private static String error(String message) {

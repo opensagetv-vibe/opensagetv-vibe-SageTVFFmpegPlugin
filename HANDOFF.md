@@ -1,5 +1,28 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
+## Growing Direct-session checkpoint (2026-09-29)
+
+Direct Transcode now treats SageTV's active/timeshifted bit as an input hint,
+not an unquestioned fact. MIM receives `-activefile` for a real growing source;
+if that advisory bit describes a just-closed recording and MIM exits cleanly
+without media, the plugin retries once without active-file behavior. A session
+is exposed only after its playlist names a nonempty segment and FFprobe proves
+the promised H.264 video. MPEG-TS FFprobe output may repeat the selected video
+under both its program and global stream table, so any exact nonzero dimension
+record is accepted.
+
+For seek requests beyond the currently available recording, the plugin probes
+the present source duration, retains a four-second playable preroll, and returns
+both `requestedStartMs` and the effective `startMs`. This prevents an impossible
+requested offset from becoming Android's SageTV timeline anchor.
+
+Focused plugin tests and deterministic packaging pass. The deployed `.232` JAR
+SHA-256 is `abb4b81e298ad0556c4bea233e5bda9c1a726620cb7f924927d9c3d574b4d0f3`.
+On non-Pro `.25`, Direct Transcode passed hardware A/V startup, a 24-hour
+live-edge clamp, server-owned REW/FF recovery, two channel changes with retained
+ownership, clean zero-session teardown, and restoration of all 103 settings.
+Per release policy, unrelated plugin/device gates were not rerun.
+
 ## 0.1.3 public prerelease (2026-09-29)
 
 Version 0.1.3 is paired with MIM 0.4.10. The affected release gate passed

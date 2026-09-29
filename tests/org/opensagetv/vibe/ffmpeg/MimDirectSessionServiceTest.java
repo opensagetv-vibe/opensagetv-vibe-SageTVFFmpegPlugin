@@ -26,6 +26,9 @@ public final class MimDirectSessionServiceTest {
                 "status=\"$(dirname \"$0\")/fake-direct-status.json\"\n" +
                 "if [ \"$1\" = \"--mim-status\" ]; then if [ -f \"$status\" ]; then cat \"$status\"; else printf '{\"activeJobs\":[]}\\n'; fi; exit 0; fi\n" +
                 "printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/last-direct-args.txt\"\n" +
+                "if [ -f \"$(dirname \"$0\")/fail-active-once\" ]; then " +
+                "for arg in \"$@\"; do if [ \"$arg\" = \"-activefile\" ]; then " +
+                "rm -f \"$(dirname \"$0\")/fail-active-once\"; exit 0; fi; done; fi\n" +
                 "playlist=''\ninput=''\nprevious=''\nfor arg in \"$@\"; do " +
                 "if [ \"$previous\" = \"-segment_list\" ]; then playlist=\"$arg\"; fi; " +
                 "if [ \"$previous\" = \"-i\" ]; then input=\"$arg\"; fi; " +
@@ -33,11 +36,21 @@ public final class MimDirectSessionServiceTest {
                 "dir=$(dirname \"$playlist\")\n" +
                 "now=$(date +%s)000\n" +
                 "printf '{\"activeJobs\":[{\"state\":\"running\",\"backend\":\"copy\",\"encoder\":\"copy\",\"hardwareEncode\":false,\"hardwareDecode\":false,\"input\":\"%s\",\"outputFormat\":\"segment\",\"startedEpochMs\":%s}]}\\n' \"$input\" \"$now\" > \"$status\"\n" +
+                "printf '#EXTM3U\\n#EXT-X-VERSION:3\\n' > \"$playlist\"\n" +
+                "sleep 1\n" +
                 "dd if=/dev/zero of=\"$dir/seg_000000.ts\" bs=188 count=8 2>/dev/null\n" +
                 "printf '#EXTM3U\\n#EXT-X-VERSION:3\\n#EXTINF:2.0,\\nseg_000000.ts\\n#EXT-X-ENDLIST\\n' > \"$playlist\"\n" +
                 "if IFS= read -r control; then printf '%s\\n' \"$control\" > \"$(dirname \"$0\")/last-direct-control.txt\"; fi\n";
         Files.write(paths.mimExecutable, script.getBytes("UTF-8"));
         paths.mimExecutable.toFile().setExecutable(true, false);
+        Files.write(paths.ffprobeExecutable,
+                // Real MPEG-TS FFprobe output repeats the selected video
+                // stream in the program and global stream tables.
+                ("#!/bin/sh\n" +
+                "for arg in \"$@\"; do if [ \"$arg\" = \"format=duration\" ]; then " +
+                "printf '60.000\\n'; exit 0; fi; done\n" +
+                "printf '1920,1080\\n\\n1920,1080\\n'\n").getBytes("UTF-8"));
+        paths.ffprobeExecutable.toFile().setExecutable(true, false);
         Path source = home.resolve("fixture.ts");
         Files.write(source, new byte[]{0x47, 0x40, 0, 0x10});
 
@@ -83,18 +96,32 @@ public final class MimDirectSessionServiceTest {
         check(service.release(session.token), "retired handoff teardown failed");
         check(!Files.exists(session.directory), "retired handoff files remained");
         check(service.release(restarted.token), "session teardown failed");
+        MimDirectSessionService.Session edgeClamped = service.create(
+                source.toString(), "copy", 86_400_000L, "auto", true);
+        check(edgeClamped.requestedStartMs == 86_400_000L,
+                "requested live-edge position was not retained for diagnostics");
+        check(edgeClamped.startMs == 56_000L,
+                "out-of-range live seek was not bounded with preroll: " + edgeClamped.startMs);
+        check(edgeClamped.json().contains("\"requestedStartMs\":86400000"),
+                edgeClamped.json());
+        check(edgeClamped.json().contains("\"startMs\":56000"), edgeClamped.json());
+        service.release(edgeClamped.token);
         check("STOP".equals(new String(Files.readAllBytes(
                         paths.runtimeDir.resolve("last-direct-control.txt")), "UTF-8").trim()),
                 "Direct teardown did not use MIM's graceful STOP control");
         check(service.get(session.token) == null, "released session remained visible");
         check(!Files.exists(restarted.directory), "released session files remained");
         MimDirectSessionService.Session noDeinterlace = service.create(
-                source.toString(), "transcode", 0L, "off");
+                source.toString(), "transcode", 0L, "off", true);
         command = new String(Files.readAllBytes(
                 paths.runtimeDir.resolve("last-direct-args.txt")), "UTF-8");
         check(command.contains("-sagetvdeinterlace\noff\n"),
                 "Direct deinterlace policy was not passed to MIM: " + command);
+        check(command.contains("-activefile\n"),
+                "growing Direct source was not declared active to MIM: " + command);
         check(noDeinterlace.json().contains("\"deinterlace\":\"off\""),
+                noDeinterlace.json());
+        check(noDeinterlace.json().contains("\"active\":true"),
                 noDeinterlace.json());
         MimDirectSessionService.Session noDeinterlaceRestart =
                 service.restart(noDeinterlace.token, 12000L);
@@ -102,6 +129,20 @@ public final class MimDirectSessionServiceTest {
                 "restart did not preserve deinterlace policy");
         service.release(noDeinterlace.token);
         service.release(noDeinterlaceRestart.token);
+        Files.write(paths.runtimeDir.resolve("fail-active-once"),
+                new byte[]{1});
+        MimDirectSessionService.Session staleActiveRecovered = service.create(
+                source.toString(), "transcode", 0L, "off", true);
+        command = new String(Files.readAllBytes(
+                paths.runtimeDir.resolve("last-direct-args.txt")), "UTF-8");
+        check(!command.contains("-activefile\n"),
+                "stale active hint did not retry as completed media: " + command);
+        check(staleActiveRecovered.json().contains("\"active\":true"),
+                staleActiveRecovered.json());
+        check(staleActiveRecovered.json().contains("\"activeFileApplied\":false"),
+                "stale-active recovery was not observable: " +
+                        staleActiveRecovered.json());
+        service.release(staleActiveRecovered.token);
         boolean rejected = false;
         try { service.create(home.resolve("not-library.ts").toString(), "copy", 0L); }
         catch (IllegalArgumentException expected) { rejected = true; }
