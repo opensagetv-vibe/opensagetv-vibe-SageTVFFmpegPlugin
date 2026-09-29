@@ -1,5 +1,12 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
+## 0.1.4 release preparation (2026-09-29)
+
+Version 0.1.4 packages the active/growing Direct-session correction documented
+below and remains paired with MIM 0.4.10. The release reruns the affected Java,
+HTTP/session, stock-Sage API, deterministic package, manifest, and launcher
+gates; unrelated completed physical matrices remain retained evidence.
+
 ## Growing Direct-session checkpoint (2026-09-29)
 
 Direct Transcode now treats SageTV's active/timeshifted bit as an input hint,

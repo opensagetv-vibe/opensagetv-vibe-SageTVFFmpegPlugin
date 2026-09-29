@@ -56,6 +56,8 @@ The Windows `.185` stock-server validation is complete and recorded in
     settings restored.
 
 The explicitly approved v0.1.3 GitHub prerelease is published with all four
-verified plugin/runtime packages. The SageTV catalog update is submitted in
-OpenSageTV/sagetv-plugin-repo pull request 126. MIM-FIXED-003 remains open only
-for the deferred compatibility rows above.
+verified plugin/runtime packages. Version 0.1.4 packages the completed
+active/growing Direct-session correction and is pending publication. The
+SageTV catalog update is submitted in OpenSageTV/sagetv-plugin-repo pull
+request 126. MIM-FIXED-003 remains open only for the deferred compatibility
+rows above.

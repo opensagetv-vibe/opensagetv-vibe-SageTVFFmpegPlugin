@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.3 - 2026-09-29
+## 0.1.4 - 2026-09-29
 
 - Fixed plugin-owned Direct Transcode startup and seeking for active/growing
   recordings. The active-file hint now reaches MIM, a stale SageTV active hint
@@ -13,6 +13,9 @@
   hardware H.264/AC-3 output, a 24-hour live-edge request clamped to playable
   media, REW/FF recovery, two channel transitions, retained Direct Transcode
   ownership, clean teardown, and restoration of all 103 client settings.
+
+## 0.1.3 - 2026-09-29
+
 - Completed the Linux/Windows Direct deinterlace policy gate. Linux `.232`
   reports full-GPU VAAPI for Auto, On, and Off; stock Windows `.185` reports
   full-GPU QSV for Off and the expected mixed fallback for Auto/On. The Off
