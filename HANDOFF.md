@@ -1,6 +1,6 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
-## 0.1.3 release candidate (2026-09-29)
+## 0.1.3 public prerelease (2026-09-29)
 
 Version 0.1.3 is paired with MIM 0.4.10. The affected release gate passed
 stock Sage.jar and STVi contracts, caption side-channel and Direct HTTP/session
@@ -16,6 +16,10 @@ SHA-256 values are:
 Per the workspace release policy, only gates affected by this plugin/runtime
 change were rerun. The broader deferred physical matrix remains visible in
 `TASKS.md`.
+
+The public v0.1.3 prerelease contains the four packages above. Downloaded
+assets match their local hashes, the current GitHub repository workflow passes,
+and the verified SageTV catalog update is submitted in pull request 126.
 
 ## Direct deinterlace/full-hardware checkpoint (2026-09-28)
 
