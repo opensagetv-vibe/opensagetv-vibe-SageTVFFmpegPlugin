@@ -46,16 +46,16 @@ jobs:
           import zipfile
           from pathlib import Path
           for platform in ('Linux', 'Windowsx64'):
-              target = Path('.deps/runtime') / f'OpenSageTVVibeMIMRuntime{platform}-0.4.9.zip'
+              target = Path('.deps/runtime') / f'OpenSageTVVibeMIMRuntime{platform}-0.4.10.zip'
               with zipfile.ZipFile(target, 'w') as archive:
                   archive.writestr('plugins/SageTVFFmpegPlugin/runtime/CI-FIXTURE.txt', platform)
           PY
-          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.9.zip" \
-          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.9.zip" \
+          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.10.zip" \
+          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.10.zip" \
             ./scripts/package-release.sh
           cp output/packages/SHA256SUMS /tmp/first-SHA256SUMS
-          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.9.zip" \
-          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.9.zip" \
+          MIM_LINUX_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeLinux-0.4.10.zip" \
+          MIM_WINDOWS_RUNTIME="$PWD/.deps/runtime/OpenSageTVVibeMIMRuntimeWindowsx64-0.4.10.zip" \
             ./scripts/package-release.sh
           cmp /tmp/first-SHA256SUMS output/packages/SHA256SUMS
       - uses: actions/upload-artifact@v7
