@@ -4,6 +4,11 @@ Read `HANDOFF.md` first, then `README.md`, `docs/STVI_DESIGN.md`, and the siblin
 
 Do not modify stock SageTV `Sage.jar`. Do not replace stock SageTV `ffmpeg`. Do not move MIM source into this repository. Keep `ffmpeg.real.ini` authoritative.
 
+Release validation is impact-based: rerun only gates the release changes could
+affect. Do not repeat unrelated completed gates. Run the full gate suite only
+when the user explicitly requests it or a broad dependency/architecture change
+requires it, and document that reason and scope.
+
 
 ## Stock-server test-control policy
 
