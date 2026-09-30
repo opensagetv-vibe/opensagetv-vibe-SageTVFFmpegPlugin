@@ -1,11 +1,37 @@
 # OpenSageTV Vibe FFmpeg Plugin tasks
 
+> **Pre-commit task maintenance:** Immediately before every repository commit, move
+> completed `[x]` items out of active sections and into
+> `## Checklist change ledger`. Preserve IDs, evidence, and context; never
+> discard completion history. Active sections contain unchecked work only.
+
 This is the only authoritative backlog for this repository. Completed work is
-retained with checked boxes and is also recorded in `CHANGELOG.md` and
-`HANDOFF.md`.
+retained with checked boxes in the checklist change ledger and is also recorded
+in `CHANGELOG.md` and `HANDOFF.md`.
 
 The Windows `.185` stock-server validation is complete and recorded in
 `CHANGELOG.md` and `HANDOFF.md`.
+
+- [ ] **MIM-FIXED-003 - Stock and legacy compatibility matrix.** Validate both
+  optional modes against unmodified `.175` and a clean stock Windows server,
+  with the plugin installed, absent, disabled, old, and deliberately failed.
+  Confirm old Android MiniClient/extender behavior is byte-for-byte unchanged;
+  cover Direct Copy and Direct Transcode with completed and growing
+  MPEG-2/H.264 input, AC-3/AAC, CEA-608/708,
+  Teletext, DVB bitmap subtitles, seek/Comskip, channel/program transitions,
+  reconnect, STOP, server restart, and process cleanup. Record full-GPU and
+  each fallback stage truthfully rather than inferring success from an encoder
+  name.
+## Checklist change ledger
+
+
+### Archived completed checklist items (2026-09-30)
+
+These completed items were moved from active task sections immediately
+before commit. Stable IDs, acceptance evidence, and source context are
+preserved; active sections contain unchecked work only.
+
+#### From `# OpenSageTV Vibe FFmpeg Plugin tasks`
 
 - [x] **MIM-FIXED-001 - Stock-compatible caption side channel.** Extend the
   Standard plugin and MIM session boundary without modifying `Sage.jar` so an
@@ -19,6 +45,7 @@ The Windows `.185` stock-server validation is complete and recorded in
   ordinary stock Fixed playback. Prove CEA Off/On, seek, pause/resume, source
   replacement, live/growing input, teardown, and no orphan processes on an
   unmodified stock server before enabling Auto selection.
+
 - [x] **MIM-FIXED-002 - Optional MIM Direct playback transport.** After the
   caption-only side channel passes, add a separately selectable Standard-plugin
   transport in which the plugin owns the MIM transcode session and exposes
@@ -35,21 +62,18 @@ The Windows `.185` stock-server validation is complete and recorded in
   explicitly selected an Auto policy that permits it. Do not patch Core or add
   private MiniClient events. Missing/failed support must fall back to ordinary
   SageTV Fixed without interrupting playback.
-- [ ] **MIM-FIXED-003 - Stock and legacy compatibility matrix.** Validate both
-  optional modes against unmodified `.175` and a clean stock Windows server,
-  with the plugin installed, absent, disabled, old, and deliberately failed.
-  Confirm old Android MiniClient/extender behavior is byte-for-byte unchanged;
-  cover Direct Copy and Direct Transcode with completed and growing
-  MPEG-2/H.264 input, AC-3/AAC, CEA-608/708,
-  Teletext, DVB bitmap subtitles, seek/Comskip, channel/program transitions,
-  reconnect, STOP, server restart, and process cleanup. Record full-GPU and
-  each fallback stage truthfully rather than inferring success from an encoder
-  name.
+
+
+#### From `# OpenSageTV Vibe FFmpeg Plugin tasks`
+
+Parent context: `- [ ] **MIM-FIXED-003 - Stock and legacy compatibility matrix.** Validate both`
+
   - [x] Prove Direct Transcode deinterlacing Off uses full-GPU VAAPI on Linux
     and full-GPU QSV on Windows, with physical non-Pro startup, seek,
     pause/resume, hardware-client decode, STV CEA callback, teardown, and
     zero-orphan evidence. Linux Auto/On also use full-GPU VAAPI; Windows
     Auto/On truthfully report the Haswell QSV VPP mixed fallback.
+
   - [x] Prove Linux active/growing Direct Transcode startup, bounded live-edge
     seek, server-owned REW/FF recovery, and two channel transitions on non-Pro
     `.25` / `.232`, with retained ownership, clean teardown, and all 103
