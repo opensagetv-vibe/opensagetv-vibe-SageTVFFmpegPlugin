@@ -14,10 +14,23 @@ The Windows `.185` stock-server validation is complete and recorded in
 
 ## Active tasks
 
+- [ ] **PLUGIN-RELEASE-001 - Publish approved beta0.1.5 and catalog update.**
+  Pair Linux/Windows manifests with verified MIM0.4.11; preserve stock files,
+  existing physical qualifications and explicit limits. Affected Java8/JDK11,
+  recovery/HTTP/session/caption/launcher/STVi gates pass. Packaging, exact-HEAD
+  green CI, public digest/MD5 verification and upstream catalog submission
+  remain; submission is not a merged/live plugin catalog.
+
 No active MIM-DIRECT-005 commissioning work remains. Release packaging and
 publication remain separately gated by WORKFLOW.md.
 
 ## Checklist change ledger
+
+- 2026-10-09 pre-commit publication review:0.1.5 Java8/JDK11 affected suites,
+  stock linkage/STVi/launchers and Linux/Windows manifests paired with0.4.11
+  pass. Initial concurrent-build2s HTTP timeout does not recur in the complete
+  unchanged JDK11 repeat. Public verification/catalog submission pending;
+  no completed active checkoffs, workspace publication priority reviewed.
 
 - 2026-10-08 pre-commit source-sync review: stock-JAR Java8 recovery/identity/
   ticket/HTTP/session/caption/launcher tests and source validation pass. Preserve

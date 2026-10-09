@@ -7,14 +7,22 @@
   CPU175500ms stress readability remains an explicit unproven limitation.
   Test candidates are not a new published Linux/Windows release.
 
-## Unreleased
+## 0.1.5 - 2026-10-09
+
+- Prepare the approved beta update with qualified bounded watch recovery and
+  explicit owned-Direct feature negotiation, paired with MIM0.4.11. Stock-JAR
+  Java8/JDK11, STVi, snapshot/ticket/coordinator/HTTP/session/caption/launcher
+  checks pass. An initial2s loopback timeout occurred during concurrent builds;
+  the complete JDK11 repeat passes without a production code change.
+  Known500ms caption stress and new Windows-wrapper physical limits remain
+  explicit; no unrelated hardware matrix or server restart.
 
 - Integrate bounded stock-API watch-recovery coordination and optional HTTP
   routes with exact source/client/intent, expiry, cancellation and replay guards.
   Defer paused intent until asynchronous Watch has independently loaded.
   Stock-API/Java8 compile and JDK8/11/17 loopback tests pass; plugin-only175
-  deployment preserves stock Core/FFmpeg. Automatic recovery physical gates
-  remain pending; asynchronous Watch acceptance is not playback proof.
+  deployment preserves stock Core/FFmpeg. The bounded recovery physical scope
+  is qualified above; asynchronous Watch acceptance alone is not playback proof.
 - Require MIM's explicit Boolean ownedDirectStreams capability before
   advertising Direct. Older wrappers safely retain ordinary Fixed instead of
   forwarding unsupported private options into FFmpeg; missing/false/untyped

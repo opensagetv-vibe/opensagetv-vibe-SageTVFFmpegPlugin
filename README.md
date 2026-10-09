@@ -61,9 +61,9 @@ Implemented and commissioned:
 
 The `.232` commissioning server and non-Pro Fire TV validation passed recorded
 and live Fixed/MIM playback through VAAPI (`h264_vaapi`), including real
-video/audio output and HDMI continuity. Version 0.1.4 is the current beta
-release candidate;
-the SageTV plugin-catalog entry is submitted for upstream review.
+video/audio output and HDMI continuity. Version0.1.5 is the approved beta
+release candidate, paired with MIM0.4.11. Catalog publication requires an
+upstream manifest PR; submission is not immediate catalog availability.
 
 ## Hardware test and report export
 

@@ -1,5 +1,16 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
+## PLUGIN-RELEASE-001 approved publication preparation (2026-10-09)
+
+Publish beta0.1.5 with paired MIM0.4.11 Linux/Windows payloads. Stock-JAR
+Java8/JDK11 and all affected STVi/recovery/session/caption/launcher contracts
+pass. Initial2s loopback HTTP timeout during concurrent builds is not a proven
+runtime defect; complete repeat passes unchanged. Existing device/stock/GPU
+evidence is retained by row, not relabeled a new full matrix. New Windows
+wrapper physical execution and CPU175500ms caption stress remain explicit
+limits. Verify clean source/CI, immutable assets/hashes and all manifest MD5s
+before the upstream catalog PR; no server restart or stock file change.
+
 Stock175 restart permission renewed2026-10-08 23:52:59 UTC for four hours,
 through2026-10-09 03:52:59 UTC (10:52:59 p.m. Central), unless revoked sooner. Check time
 and revocation before every restart; plugins only, no stock Core/files changes.
