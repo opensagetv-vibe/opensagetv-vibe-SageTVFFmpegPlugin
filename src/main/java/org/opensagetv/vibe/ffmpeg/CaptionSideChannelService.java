@@ -108,9 +108,23 @@ final class CaptionSideChannelService implements Closeable {
     }
 
     synchronized String capabilitiesJson() {
+        long sourceDatagrams = 0L;
+        long retainedRecords = 0L;
+        long latestPtsMs = -1L;
+        for (Session session : sessions.values()) {
+            synchronized (session) {
+                sourceDatagrams += session.sourceDatagrams;
+                retainedRecords += session.records.size();
+                if (!session.records.isEmpty())
+                    latestPtsMs = Math.max(latestPtsMs, session.records.getLast().ptsMs);
+            }
+        }
         return "{\"contractVersion\":" + CONTRACT_VERSION +
                 ",\"state\":\"" + json(state) + "\",\"listeners\":" + slots.size() +
                 ",\"activeSessions\":" + sessions.size() +
+                ",\"sourceDatagrams\":" + sourceDatagrams +
+                ",\"retainedRecords\":" + retainedRecords +
+                ",\"latestPtsMs\":" + latestPtsMs +
                 ",\"reservationAvailable\":" + reservationAvailable() +
                 ",\"error\":\"" + json(error) + "\"}";
     }
@@ -237,7 +251,15 @@ final class CaptionSideChannelService implements Closeable {
         void start() throws IOException {
             DatagramSocket bound = new DatagramSocket(null);
             bound.setReuseAddress(false);
+            // MIM's copied-video tap can burst much faster than playback even
+            // when the HLS output is paced. Linux's default ~208 KiB UDP
+            // receive queue can discard TS packets during those bursts,
+            // silently removing individual CEA-608 character/control pairs.
+            // Request a bounded queue before binding; the OS may cap it.
+            bound.setReceiveBufferSize(4 * 1024 * 1024);
             bound.bind(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), port));
+            System.out.println("[SageTVFFmpegPlugin] caption tap UDP receive buffer=" +
+                    bound.getReceiveBufferSize() + " port=" + port);
             bound.setSoTimeout(200);
             socket = bound;
             Thread worker = new Thread(this, "vibe-caption-slot-" + port);
@@ -429,7 +451,12 @@ final class CaptionSideChannelService implements Closeable {
             int emitted = 0;
             long nextCursor = effectiveCursor;
             for (Record record : records) {
-                if (record.sequence <= effectiveCursor || record.ptsMs > untilMs + 1000L) continue;
+                if (record.sequence <= effectiveCursor) continue;
+                // MPEG video arrives in decode order, so B-frame presentation
+                // timestamps need not increase with record sequence. Never
+                // advance the cursor past an earlier, not-yet-due record:
+                // doing so permanently loses its CEA-608 control/text bytes.
+                if (record.ptsMs > untilMs + 1000L) break;
                 if (emitted++ >= limit) break;
                 if (emitted > 1) output.append(',');
                 output.append('[').append(record.sequence).append(',').append(record.ptsMs)

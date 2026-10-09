@@ -81,6 +81,16 @@ public final class CaptionSideChannelServiceTest {
     }
 
     public static void main(String[] args) throws Exception {
+        CaptionSideChannelService.Session reorderedPts =
+                new CaptionSideChannelService.Session("pts-order-test", 1L, 16, 1024);
+        reorderedPts.offer(2000L, new byte[]{(byte) 0xfc, 0x41, 0x42});
+        reorderedPts.offer(1900L, new byte[]{(byte) 0xfc, 0x43, 0x44});
+        String pending = reorderedPts.read(0L, 950L, 16);
+        check(pending.contains("\"cursor\":0") && pending.contains("\"packets\":[]"),
+                "future decode-order record was skipped: " + pending);
+        String due = reorderedPts.read(0L, 1000L, 16);
+        check(due.contains("\"cursor\":2") && due.indexOf("fc4142") < due.indexOf("fc4344"),
+                "decode-order records were lost or reordered: " + due);
         Path home = java.nio.file.Paths.get(args[0]).toAbsolutePath();
         System.setProperty("vibe.ffmpeg.sageHome", home.toString());
         RuntimePaths paths = RuntimePaths.detect();
@@ -97,6 +107,9 @@ public final class CaptionSideChannelServiceTest {
                 "127.0.0.1", apiPort, service, direct);
         http.start();
         check(service.capabilitiesJson().contains("\"state\":\"ready\""),
+                service.capabilitiesJson());
+        check(service.capabilitiesJson().contains("\"sourceDatagrams\":0") &&
+                service.capabilitiesJson().contains("\"retainedRecords\":0"),
                 service.capabilitiesJson());
         Response capabilities = http("GET", apiPort, "/v1/capabilities", null);
         check(capabilities.status == 200 && capabilities.body.contains("\"state\":\"ready\""),
@@ -153,6 +166,10 @@ public final class CaptionSideChannelServiceTest {
         check(statusResponse.body.contains("\"sourceDatagrams\":") &&
                 !statusResponse.body.contains("\"sourceDatagrams\":0"), statusResponse.body);
         check(statusResponse.body.contains("\"sourceBytes\":"), statusResponse.body);
+        String aggregate = service.capabilitiesJson();
+        check(!aggregate.contains("\"sourceDatagrams\":0") &&
+                !aggregate.contains("\"retainedRecords\":0") &&
+                aggregate.contains("\"latestPtsMs\":"), aggregate);
         Response teardownResponse = http("POST", apiPort,
                 "/v1/sessions/teardown?token=" + token, null);
         check(teardownResponse.status == 200 && teardownResponse.body.contains("\"released\""),

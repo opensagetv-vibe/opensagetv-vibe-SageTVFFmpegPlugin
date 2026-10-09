@@ -1,5 +1,287 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
+Stock175 restart permission renewed2026-10-08 23:52:59 UTC for four hours,
+through2026-10-09 03:52:59 UTC (10:52:59 p.m. Central), unless revoked sooner. Check time
+and revocation before every restart; plugins only, no stock Core/files changes.
+Historical2 p.m. expiry notes below are superseded by this explicit renewal.
+
+## Current state: MIM-DIRECT-005 qualified, publication separate
+
+MIM-DIRECT-005 closes in bounded single-segment/non-DVD scope after Android
+DEVICE-002/TABLET-MIM-001/GSY-CAP-001 qualification. Current candidates on175/232:
+FFplugin efe2bb7b, CoreMCP6fff42f0, Linux MIM6e80a2d9; current tablet APKc62911ae.
+Stock175 Core/root FFmpeg and232 Core/root FFmpeg/live INI unchanged.
+Both GSY175 real Direct-only recovery61.328/64.402s,232 owned2s captions/
+seek/pause86.354/77.837s and175 unavailable-service ordinary Fixed69.333/68.573s
+pass. Media3/legacy, playing/paused public boundary, latest nonzero bookmark/
+real canceled Watch409, actual fresh H.264 before final Seek and absent/false/
+untyped MIM feature guards pass. No normal runtime MCP requirement or atomic
+Watch guarantee. Latest compact proof is Android
+artifacts/results/DEVICE-002/owned-watch-recovery.json.
+
+232 actual fresh VAAPI job confirms hardware decode+encode; no measured GPU
+load.175 CPU500ms caption stress picture remains malformed, exact cause unproven;
+2s controls readable on both servers. Final original175 caption listenerfalse,
+15 prefs/group and power restored; both activeJobs/contexts empty. Generated
+2s shared file and232 temporary import retired, case disabled; completed raw
+and staging are recoverable below rootdeleteme. No new canonical Windows
+runtime package, release or publication claimed. Existing paired release gate
+still applies before approval-based publication.
+
+### Superseded revision300 deployment notes
+
+Revision300 integration is now deployed on stock175: FFmpeg JAR efe2bb7b,
+Core MCP6fff42f0, plugin-owned static MIM6e80a2d9, FFmpegceaf236a and
+probeb9b6bed1. Execution/ABI, public health and unchanged stock Core/root
+FFmpeg hashes pass. Initial old-runtime private-marker failure is corrected;
+explicit ownedDirectStreams feature guard passes absent/false/untyped/foreign
+capability tests plus Direct service/HTTP/recovery regressions. Typed public
+plugin caption-listener control passes false/true/false; original false is
+currently borrowed true for Android tests and must restore on completion.
+
+Tablet APKd9e9e500 is installed with15 prefs restored. Normal integrated run
+FAIL74.794s reports DEBUG_CONTROL broadcast ANR during startup seek, not a
+qualified owned support PASS; sole leftover gate producer was retired by its
+exact private token without a global process kill. Forced recovery qualification
+is next, then normal defect investigation and232 GPU. No runtime MCP dependency,
+stock Core patch, publication or unrelated completed matrix rerun.
+
+### Superseded revision299 local-only checkpoint
+
+Current2026-10-08 revision299: staged coordinator and injectable recovery HTTP
+candidate implemented/tested locally against stockAPI/Java8. JDK8/11/17 gates
+cover exact source/owner/intent/expiry/cancel/replay, canceled claims, source
+change at Pause, ready-only Pause and closed-listener late work. Existing
+Direct HTTP regression passes. Candidate routes are absent from the existing
+production4-argument HTTP constructor and are not advertised/deployed.
+DirectWatchRecoveryService retains typed sources server-local; no normal MCP
+dependency. Never claim Watch acceptance as actual playback or use its async
+task marker/private Catbert state as readiness.
+
+Stock175/tablet644596ae public fresh Watch/42s Seek proof passes91.843s playing
+and98.834s paused: real Exynos H.264 A/V, reviewed source labels43.710s,
+42.042s paused and46.947s resumed;15prefs/power restored. Public source time
+includes transcode offset; Android backend epoch resets at Fixed Push FLUSH.
+Clock-oracle failures are qualified in the compact Android results report,
+not claimed as production defects. Core MCP only controls this proof.
+Next: actual plugin wiring/Android latest-intent fresh-session integration,
+then forced creation/replacement failure, captions/controls/zero-orphan gates
+on175 and GPU232. Safe existing client guard remains; full support is open.
+No server install/restart/Core/runtime change yet. Active system staging is
+/tmp/mim-watch-intent.ivvJj5; don't overwrite active dist merely to run tests.
+
+### Earlier prerequisite evidence (superseded next-action wording)
+
+Initial-failure captureIntent is also implemented/tested locally: exact UI
+current MediaFile must equal the library-resolved source ID; single segment,
+non-DVD, requested playing/relative target, safe absolute metadata conversion
+and explicitIntent flag. No decoder state/clock API called. Zero, mismatch,
+source race, multi-segment/DVD, negative/overflow guards pass JDK8/11/17 stock
+API compilation. This is not an observed playback snapshot or enabled replay.
+Next: coordinator/latest-intent-after-claim, fresh-connection restore and
+physical gates, then negotiated Android integration. Safe Fixed remains.
+
+Snapshot/ticket custody compiles against stock API/Java8; tests pass on
+JDK8/11/17. Tickets are bounded4/120s/one-use/exact context-media-intent and
+guard cancellation/supersession/expiry/clock regression. All plugin sources
+compile in isolated staging; active/deployed JAR untouched. Next coordinator
+must revalidate cancellation/latest intent after claim, reject a changed/new
+user Watch, and avoid decoder-owned state/time reads synchronously during
+OPENURL/SEEK/replacement. Stock getters cross the media socket; initial-failure
+capture needs metadata/explicit intent instead. No HTTP endpoint, recovery or
+input-capability advertisement enabled yet.
+
+Owned temporary compile tree /tmp/mim-watch-snapshot.BtndPa is now removed
+after59 .class-only/no-symlink/exact-target checks and successful tests;
+source/tests and active/deployed JARs remain intact. Recreate in system mktemp
+staging when further affected validation is needed, not beside project roots.
+
+Read-only DirectWatchSnapshot sub-stage compiles against stock Sage.jar
+d76ded98 at Java8 bytecode level and passes deterministic tests on JDK8/11/17.
+Exact unique context, typed media identity, separate absolute/raw clocks,
+loading/DVD/error rejection and before/after source guards are covered.
+It is not wired to negotiation/HTTP; no Watch/Seek/Pause or new producer is
+performed. Recovery-ticket cancellation/expiry/latest-intent, real restore and
+physical fallback remain. Core MCP175 test bridge is available read-only;
+no server binary/configuration/restart or new support claim. Prototype test
+classes were built in owned system temporary staging, not the active JAR.
+
+Android IJK best-effort disposition and affected fixes are qualified; its
+DEVICE-002 remains open for owned Transcode on the MPEG-2-less tablet.
+Prove optional stock-public-API watch recovery before new input-capability
+negotiation. Current ordinary Fixed guard remains; rejected capability and
+fresh-session experiments stay withdrawn. No runtime change/deployment or
+new support claim yet. MiniPlayer793-807 rejects original Pull when advertised
+native codecs cannot play it. GetMediaTime is non-DVD airing/wall-clock based;
+GetRawMediaTime is current-file-relative. Seek routes to queued timeJump.
+Exact client/media identity, coordinate, cancellation, expiry, latest intent
+and one-shot restore require tests before HTTP exposure. Core MCP already
+offers both clocks for testing and must not become a runtime dependency.
+Stock175 changes are plugins only. Its user-granted restart window expired
+2026-10-08 at19:00 UTC (2 p.m. Central); no restart used. Ask before another
+175 restart;232 restarts remain authorized. Continue local contract work.
+
+## Current: verified Direct-segment cleanup; publication not authorized (2026-10-08)
+
+MIM-DIRECT-004 supports Android DEVICE-003/MINIMX-MIM-001. Physical232 Copy
+seek fails in both Exo families. Current-session segment9 gets404 media_not_ready;
+read-only open-file witness sees it become `(deleted)` while still being
+written, followed by a playlist reference to its absent pathname.15s age-only
+unlisted cleanup is the cause. Candidate now removes only aged files BELOW
+the first published segment, never referenced/newer/unpublished writers, and
+skips an empty/transient playlist. No codec, timing, HTTP, MIM-native or Core
+change. Portable boundary avoids Linux-only /proc checks in production.
+Stock-Sage.jar build and plugin/session/HTTP/caption/launcher tests pass.
+Minimal Direct-service overlay deployed on232: only Session and outer service
+class bytes differ. JAR SHAe62bee7731bbd0202fe3ceb2dafb12a84134db06a5b5331d100b0035eb949cbd;
+originald2fd13c0 remains backup-direct-cleanup-20261008, non-jar suffix.
+User confirms idle and standing232 restart authorization; restarted only its
+named test container, running expectedIP232/healthy CoreMCP/caption API ready/
+Directavailable/zero sessions before test. Sage.jar dc6891c8, stockffmpeg bdf6aabf
+and live INI4a5f3e78 hashes unchanged. No175 files/service touched. Original
+MIM-DIRECT-004 CLOSED: original long Copy Media3224.062s/legacy247.007s PASS,
+same budgets/20s Off-On14 cues, actual seek/pause/strict ownership,32 prefs/
+server CC/power restored. Provider18 listed/no missing/segment9 exists.
+Clean2s CEA owned Transcode200.781s PASS with readable CC1 initial/post-seek,
+Off clear, fresh VAAPI decode+encode, and zero caption/Direct/process orphans.
+CC2 blank expected: fixture has one608 channel/708 service1, not two languages.
+Android DEVICE-003 optional DVD Copy/Transcode/hybrid and stock fallback gates
+are complete with their documented limits. No new Windows
+physical claim: portable unit retention boundaries pass against stock API.
+User explicitly authorizes necessary plugin fixes/tests/updates as a standing
+rule; no repeat repository-boundary approval. Stock175 installation changes
+are PLUGINS ONLY, never Core/server files. No publication authorized here.
+
+## MIM-FIXED-003 legacy compatibility closure (2026-10-05)
+
+MIM-FIXED-003 is complete. The last physical legacy row passed on replacement
+HD200 `001d6a4bfafe` against unmodified stock `.175`. The extender retained its
+normal non-Direct path through generated MPEG-2/AC-3/CEA, H.264 transitions,
+authored-DVD navigation/audio/subpicture controls, STOP/Home repaint, and a
+growing 5.1-to-7.1 channel transition. Stable UK H.264/AC-3 playback also
+passed; Teletext/DVB absence was reproduced as the stock server's old FFmpeg
+boundary. Automatic Power Off 1.0.7 caused the two observed extender
+shutdowns and was removed by the user. Combined with the already completed
+Android cross-player, plugin-state/failure, Linux/Windows Direct, caption,
+seek, restart, and process-cleanup evidence, this closes the compatibility
+matrix without changing stock `Sage.jar`. Evidence is indexed in the workspace
+at `artifacts/mimfix003-hd200/RESULTS.md`.
+
+## Stock-Windows lifecycle closure (2026-10-05)
+
+The remaining current-plugin lifecycle rows passed on stock Windows `.185`
+with non-Pro Fire TV `.25`. Because `SageTV64` runs as `LocalSystem`, the
+fixture share was mapped persistently in that service-account context; the
+mapped fixture remained readable after a real service restart.
+
+Strict Direct Transcode and Direct Copy sessions were both owned by the plugin
+and consumed through Android's MIM Direct HTTP data source. Transcode produced
+hardware-decoded H.264 plus AC-3; Copy preserved hardware-decoded MPEG-2 plus
+AC-3. Deterministic seek, FF/REW recovery, pause/play, repeated start,
+Stop/exact rewatch, crash checks, and settings restoration passed. While an
+active Transcode session existed, `SageTV64` was restarted. The old session was
+removed, the API returned `ready`, and a fresh strict Direct Transcode run
+again reached sustained A/V and stopped cleanly. Final checks reported zero
+caption/Direct sessions and no `SageTVTranscoder`, MIM, or FFmpeg process.
+
+All 110 Android settings and the prior sleep policy were restored. Stock
+`Sage.jar` was unchanged. Prior Windows QSV/software fallback,
+CEA/Teletext/DVB, and caption-after-seek evidence remains valid and was not
+repeated. The final legacy row subsequently closed above. No publication
+occurred.
+
+## CEA caption tap correction and physical A/B (2026-10-03)
+
+Equal-duration 90-second generated MPEG-2/AC-3/CEA files with 0.5-second and
+2-second cue spacing were compared on stock `.175` Pull, Vibe `.232` Direct,
+and stock Windows `.185` Direct, all using non-Pro Fire TV `.25`. Event-225
+continued after FF; the 2-second fixture now visibly renders correctly
+spelled 30/32/34-second rows at video ~35 seconds on both Direct servers.
+The fast fixture can be blank in an isolated still at a caption transition,
+but other post-seek stills show correct text on all three paths. Treat it as
+a stress fixture, not the sole visual-quality oracle.
+
+Before the `.232` correction, the authored elementary stream and static
+remux contained all cues, while the Linux MIM Direct loopback tap had missing
+CEA character/control pairs. The host default UDP receive queue was ~208 KiB.
+The optional side-channel socket now requests a bounded 4 MiB queue before
+binding; the local Java socket test confirmed 4,194,304 bytes, and the `.232`
+raw tap became complete with visually clean slow-cue rows. This is strong
+before/after evidence for UDP receive overflow, though kernel drop counters
+were not captured. `Session.read` also stops at a future decode-order PTS
+instead of advancing the cursor past it; the deterministic nonmonotonic-PTS
+test covers that loss case. `dev.cmd test` passes, including the side-channel,
+Direct session, HTTP, and launcher tests.
+
+Only the two changed caption classes were overlaid on the known-working
+`.232` FFmpeg plugin JAR; SHA-256
+`d2fd13c0e26571320702055a96807a5be8e7295b994a60a304dc73c6a6bdc834`.
+The original JAR remains recoverable as a non-`.jar` backup; this overlay is
+test-only and **not** the published artifact. Stock Windows `.185` retained
+its JAR hash `1898cc772378cc894aa825fb46dce3fd4a9f96af56f7bc37b36e0548f3e7dfc9`.
+No Sage.jar was changed. The three servers' generated A/B imports/files were
+removed and rescanned. `.232`'s separate Core MCP control plugin was updated
+to 0.1.4 solely to remove its temporary import through the stock SageTV API.
+The parent MIM-FIXED-003 legacy/lifecycle matrix remains open; no commit or
+publication occurred.
+
+## Windows owned seek/pause follow-up (2026-10-03)
+
+On stock Core Windows `.185` / non-Pro `.25`, the existing FFmpeg plugin JAR
+retained MIM Direct Transcode ownership through FF/REW and pause/play with a
+deterministic zero start. STV-authoritative FF/REW event-225 recovery took
+3.282/3.535 seconds. A post-seek screenshot visibly contains malformed
+roll-up PTS caption rows; correct caption rendering is not yet accepted on
+that generated fixture. Forward-slash `C:/...` exact-path Watch works through
+the Windows-to-WSL test wrapper; the backslash variant did not. The server
+import and generated file were removed and rescanned. Stock `Sage.jar` and
+installed plugin JAR hashes remain unchanged. The generated local copy was
+moved to workspace cleanup quarantine after direct deletion was blocked.
+
+## Windows visual caption control (2026-10-03)
+
+The earlier blank-STV observation was specific to the canonical generated
+fixture's 0.5-second caption cadence, or to another property of that fixture;
+it is not proof that Fixed/MIM Direct cannot display CEA captions. A separate
+90-second fixture from the same generator with `--caption-interval 2.0`
+visibly passed STV CC1/Off/CC1 on stock-Core Windows `.185` / non-Pro `.25`
+using Media3 Fixed/MIM Direct Transcode, deinterlacing Off, an active caption
+side channel, and standard event-225 callbacks. The first CC1 capture showed
+three timestamped caption rows and the final CC1 capture showed two; Off was
+visually clear. A real PBS broadcast also visibly passed stock `.175`/Pull
+CC1 on the same client. The cause is a fixture-cadence inference until a
+same-duration A/B, so retain the broader MIM-FIXED-003 matrix as open.
+The local and Windows temporary fixture copies and import were removed after
+hash/size verification and stock-library rescan. Installed FFmpeg JAR hash
+`1898cc772378cc894aa825fb46dce3fd4a9f96af56f7bc37b36e0548f3e7dfc9`
+and stock `Sage.jar` were not changed.
+
+## Windows Direct caption diagnostic checkpoint (2026-10-03)
+
+On stock-Core Windows `.185` with non-Pro Fire TV `.25`, the existing installed
+plugin JAR (`1898cc772378cc894aa825fb46dce3fd4a9f96af56f7bc37b36e0548f3e7dfc9`)
+started an owned MIM Direct Transcode session with advancing A/V. The Android
+caption side channel attached and was active, but the generated CEA-608/708
+fixture produced no non-empty rendered cue. One FF/REW run failed and a repeat
+passed, so seek stability is also not closed.
+
+The local source now adds read-only aggregate `sourceDatagrams`,
+`retainedRecords`, and `latestPtsMs` fields to the caption capability response;
+focused Java tests and a local package build pass. A full diagnostic plugin
+JAR (`06c1ef873b87e9ff4f0126db53cb3a8a50eeda39cc5e2460df733cfecece3801`)
+was temporarily installed on `.185`, but the next Android attempt fell back
+before Direct ownership. That result does not prove which of the diagnostic
+build's differences caused startup failure. The original known-working JAR
+was restored, and a final strict Direct-owned A/V smoke passed. The diagnostic
+copy remains recoverable under a non-`.jar` suffix, not loaded. Isolate the
+binary/version difference before another deployment. A read-only ZIP-entry
+comparison found 21 differing entries between the installed JAR and the
+locally rebuilt JAR, including Direct HTTP/session classes as well as caption
+classes; the replacement therefore was not a caption-metrics-only experiment.
+The downloaded comparison copy was removed after the hash-verified audit.
+MIM-FIXED-003 remains
+open; the read-only metrics are not a caption fix and are not published.
+
 ## 0.1.4 release preparation (2026-09-29)
 
 Version 0.1.4 packages the active/growing Direct-session correction documented

@@ -1,5 +1,54 @@
 # Changelog
 
+- 2026-10-08 commissioning: MIM-DIRECT-005 stock-plugin recovery qualifies on
+  tablet/stock175 and232 with Media3/legacy/both GSY delegates, latest intent,
+  canceled/expired tickets, readable2s CEA, seek/pause and unavailable fallback.
+  Actual232 VAAPI decode+encode and zero-orphan/settings restoration verified;
+  CPU175500ms stress readability remains an explicit unproven limitation.
+  Test candidates are not a new published Linux/Windows release.
+
+## Unreleased
+
+- Integrate bounded stock-API watch-recovery coordination and optional HTTP
+  routes with exact source/client/intent, expiry, cancellation and replay guards.
+  Defer paused intent until asynchronous Watch has independently loaded.
+  Stock-API/Java8 compile and JDK8/11/17 loopback tests pass; plugin-only175
+  deployment preserves stock Core/FFmpeg. Automatic recovery physical gates
+  remain pending; asynchronous Watch acceptance is not playback proof.
+- Require MIM's explicit Boolean ownedDirectStreams capability before
+  advertising Direct. Older wrappers safely retain ordinary Fixed instead of
+  forwarding unsupported private options into FFmpeg; missing/false/untyped
+  and unrelated-feature Java gates pass.
+
+- Protect unfinished plugin-owned Direct segments from retention cleanup:
+  only aged segments below the published playlist window are retired. This
+  corrects a proven missing-segment404 after Copy seeking without changing
+  codecs, timestamps, user INI, stock Core or ordinary Fixed playback.
+  Focused Java tests and original MiniMX Copy gates pass in both Exo families;
+  clean CEA hardware Transcode and zero-orphan teardown also pass on `.232`.
+
+- Close MIM-FIXED-003 after a replacement HD200 passed the final stock-server
+  legacy row for MPEG-2/AC-3/CEA, H.264 transitions, authored DVD, STOP/Home,
+  and growing channel change. The optional plugin left the extender path
+  unaffected. Stock Teletext/DVB absence was verified as the server's old
+  FFmpeg limitation; the observed power-offs came from Automatic Power Off
+  1.0.7 and ceased after its removal.
+
+- Completed the remaining current-plugin stock-Windows `.185` MIM Direct
+  lifecycle rows with non-Pro `.25`. Direct Transcode and Direct Copy each
+  retained owned HTTP playback through seek, pause, repeated source start,
+  Stop/exact rewatch, and clean teardown. A real `SageTV64` restart cleared the
+  active session; the plugin returned ready, and a fresh strict Direct
+  Transcode session recovered sustained A/V. Final capability and process
+  checks showed zero active sessions and no launcher, MIM, or FFmpeg process.
+- Corrected the optional Fixed/MIM Direct CEA-608 side channel's Linux
+  loopback tap by requesting a bounded 4 MiB UDP receive queue before bind.
+  Also prevent the caption cursor from advancing past a not-yet-due record
+  when MPEG B-frame PTS arrives out of decode order. Focused Java tests and
+  an equal-duration 0.5-second/2-second caption fixture comparison pass;
+  a test-only class overlay on `.232` visibly restores clean post-seek STV
+  text. The broader legacy/lifecycle matrix and publication remain open.
+
 ## 0.1.4 - 2026-09-29
 
 - Fixed plugin-owned Direct Transcode startup and seeking for active/growing

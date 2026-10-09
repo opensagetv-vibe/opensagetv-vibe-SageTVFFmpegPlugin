@@ -59,6 +59,7 @@ public final class MimDirectHttpTest {
         RuntimePaths paths = RuntimePaths.detect();
         Files.createDirectories(paths.runtimeDir);
         String script = "#!/bin/sh\n" +
+                "if [ \"$1\" = \"--mim-capabilities\" ]; then printf '{\"ownedDirectStreams\":true}\\n'; exit 0; fi\n" +
                 "if [ \"$1\" = \"--mim-status\" ]; then printf '{\"activeJobs\":[]}\\n'; exit 0; fi\n" +
                 "playlist=''\nprevious=''\nfor arg in \"$@\"; do " +
                 "if [ \"$previous\" = \"-segment_list\" ]; then playlist=\"$arg\"; fi; " +

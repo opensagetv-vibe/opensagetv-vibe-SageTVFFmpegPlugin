@@ -76,7 +76,8 @@ final class MimDirectSessionService implements Closeable {
 
     synchronized void start(boolean requested) throws IOException {
         stopAll();
-        enabled = requested && Files.isRegularFile(paths.mimExecutable);
+        enabled = requested && Files.isRegularFile(paths.mimExecutable)
+                && Boolean.TRUE.equals(runtime.capabilities(true).json.get("ownedDirectStreams"));
         if (enabled) Files.createDirectories(paths.directMediaDir);
         cleanupStaleDirectories();
     }
@@ -510,23 +511,38 @@ final class MimDirectSessionService implements Closeable {
             }
         }
 
-        /** Keep the live playlist bounded without reusing segment filenames. */
+        /**
+         * Retire only segments older than the published window. An unlisted
+         * newer file can still be the segment muxer's current open output.
+         * Copy input can pause longer than the retention grace (for example
+         * around a seek/keyframe); age alone must never unlink that writer.
+         * Use the monotonically numbered playlist boundary rather than OS
+         * open-file inspection so the same rule holds on Linux and Windows.
+         */
         void cleanupUnlistedSegments() {
             if (!Files.isRegularFile(playlist)) return;
             final Set<String> referenced = new HashSet<String>();
             try {
+                String firstPublished = null;
                 for (String line : Files.readAllLines(playlist, StandardCharsets.UTF_8)) {
                     String value = line == null ? "" : line.trim();
-                    if (value.startsWith("seg_") && value.endsWith(".ts") &&
-                            value.indexOf('/') < 0 && value.indexOf('\\') < 0)
+                    if (value.matches("seg_[0-9]{6}\\.ts")) {
                         referenced.add(value);
+                        if (firstPublished == null || value.compareTo(firstPublished) < 0)
+                            firstPublished = value;
+                    }
                 }
+                // A transient empty/partial playlist offers no safe retirement
+                // boundary. Teardown still removes the entire owned directory.
+                if (firstPublished == null) return;
                 long cutoff = System.currentTimeMillis() - UNLISTED_SEGMENT_GRACE_MS;
                 try (DirectoryStream<Path> entries =
                              Files.newDirectoryStream(directory, "seg_*.ts")) {
                     for (Path entry : entries) {
                         Path name = entry.getFileName();
-                        if (name == null || referenced.contains(name.toString())) continue;
+                        if (name == null || !name.toString().matches("seg_[0-9]{6}\\.ts") ||
+                                referenced.contains(name.toString()) ||
+                                name.toString().compareTo(firstPublished) >= 0) continue;
                         FileTime modified = Files.getLastModifiedTime(entry);
                         if (modified.toMillis() <= cutoff) Files.deleteIfExists(entry);
                     }

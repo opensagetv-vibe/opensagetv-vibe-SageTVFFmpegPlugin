@@ -23,6 +23,7 @@ public final class MimDirectSessionServiceTest {
         RuntimePaths paths = RuntimePaths.detect();
         Files.createDirectories(paths.runtimeDir);
         String script = "#!/bin/sh\n" +
+                "if [ \"$1\" = \"--mim-capabilities\" ]; then printf '{\"ownedDirectStreams\":true}\\n'; exit 0; fi\n" +
                 "status=\"$(dirname \"$0\")/fake-direct-status.json\"\n" +
                 "if [ \"$1\" = \"--mim-status\" ]; then if [ -f \"$status\" ]; then cat \"$status\"; else printf '{\"activeJobs\":[]}\\n'; fi; exit 0; fi\n" +
                 "printf '%s\\n' \"$@\" > \"$(dirname \"$0\")/last-direct-args.txt\"\n" +
@@ -58,6 +59,18 @@ public final class MimDirectSessionServiceTest {
                 new MimDirectSessionService.SourceAuthorizer() {
                     public boolean isAllowed(Path candidate) { return candidate.equals(source); }
                 });
+        // File presence and a successful unrelated capability must not enable
+        // private Direct options on an older MIM wrapper. It would pass them
+        // through to stock FFmpeg and silently end the producer before video.
+        for (String unsupported : new String[]{"{}", "{\"ownedDirectStreams\":false}",
+                "{\"ownedDirectStreams\":\"true\"}", "{\"dvdVideoDemux\":true}"}) {
+            Files.write(paths.mimExecutable,
+                    script.replace("{\"ownedDirectStreams\":true}", unsupported).getBytes("UTF-8"));
+            service.start(true);
+            check(service.capabilitiesJson().contains("\"available\":false"),
+                    "old/untyped MIM unexpectedly enabled Direct: " + unsupported);
+        }
+        Files.write(paths.mimExecutable, script.getBytes("UTF-8"));
         service.start(true);
         check(service.capabilitiesJson().contains("\"available\":true"),
                 service.capabilitiesJson());
@@ -74,12 +87,35 @@ public final class MimDirectSessionServiceTest {
                 "Direct output is not MPEG-TS segmented: " + command);
         check(command.contains("-map\n0:s?\n"),
                 "Direct output does not preserve broadcast subtitles: " + command);
-        Path stale = session.directory.resolve("seg_999999.ts");
-        Files.write(stale, new byte[]{0x47, 0, 0, 0});
-        Files.setLastModifiedTime(stale,
+        byte[] publishedPlaylist = Files.readAllBytes(session.playlist);
+        Path unfinished = session.directory.resolve("seg_000009.ts");
+        Files.write(unfinished, new byte[]{0x47, 0, 0, 0});
+        Files.setLastModifiedTime(unfinished,
                 FileTime.fromMillis(System.currentTimeMillis() - 60_000L));
         session.cleanupUnlistedSegments();
-        check(!Files.exists(stale), "unlisted Direct segment was not bounded");
+        check(Files.exists(unfinished), "cleanup removed unfinished future segment");
+        Path retired = session.directory.resolve("seg_000000.ts");
+        Path recentRetired = session.directory.resolve("seg_000001.ts");
+        Path referenced = session.directory.resolve("seg_000002.ts");
+        Files.write(recentRetired, new byte[]{0x47});
+        Files.write(referenced, new byte[]{0x47});
+        Files.setLastModifiedTime(retired,
+                FileTime.fromMillis(System.currentTimeMillis() - 60_000L));
+        Files.setLastModifiedTime(referenced,
+                FileTime.fromMillis(System.currentTimeMillis() - 60_000L));
+        Files.write(session.playlist, "#EXTM3U\n#EXTINF:2,\nseg_000002.ts\n".getBytes("UTF-8"));
+        session.cleanupUnlistedSegments();
+        check(!Files.exists(retired), "retired segment below published window remained");
+        check(Files.exists(recentRetired), "retired segment grace was lost");
+        check(Files.exists(referenced), "referenced old segment was deleted");
+        check(Files.exists(unfinished), "future writer was deleted after window advance");
+        Files.setLastModifiedTime(recentRetired,
+                FileTime.fromMillis(System.currentTimeMillis() - 60_000L));
+        Files.write(session.playlist, "#EXTM3U\n".getBytes("UTF-8"));
+        session.cleanupUnlistedSegments();
+        check(Files.exists(recentRetired), "empty playlist allowed unsafe cleanup");
+        Files.write(retired, new byte[]{0x47, 0, 0, 0});
+        Files.write(session.playlist, publishedPlaylist);
         check(session.json().contains("/v1/direct/media/" + session.token + "/stream.m3u8"),
                 session.json());
         check(session.json().contains("\"path\":\"copy\""),

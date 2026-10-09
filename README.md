@@ -52,6 +52,10 @@ Implemented and commissioned:
 - Explicit MIM Direct Copy and Direct Transcode sessions. Copy performs no
   video/audio decode or encode. Transcode reports the actual full-GPU, mixed,
   or software fallback stage.
+- Require MIM's explicit ownedDirectStreams feature before Direct negotiation.
+  MPEG-2-less Android clients can additionally negotiate bounded exact-source
+  stock-API fresh Watch/video/Seek recovery for startup failure. Older/missing
+  support safely retains ordinary Fixed; MCP is not a playback dependency.
 - Bounded live MPEG-TS segmentation that preserves CEA, Teletext, DVB bitmap,
   language, and timing metadata for Android-local caption rendering.
 

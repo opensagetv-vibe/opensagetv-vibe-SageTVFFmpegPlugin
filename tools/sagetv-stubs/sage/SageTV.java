@@ -13,4 +13,9 @@ public final class SageTV {
       throws InvocationTargetException {
     return null;
   }
+
+  public static Object apiUI(String context, String method, Object[] arguments)
+      throws InvocationTargetException {
+    return null;
+  }
 }

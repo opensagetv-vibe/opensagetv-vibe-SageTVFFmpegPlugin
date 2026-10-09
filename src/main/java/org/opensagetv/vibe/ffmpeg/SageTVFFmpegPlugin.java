@@ -346,7 +346,8 @@ public final class SageTVFFmpegPlugin implements SageTVPlugin {
             captionHttp = new CaptionSideChannelHttpServer(
                     ini.get("caption_side_channel", "bind_address", "0.0.0.0").trim(),
                     integer(ini.get("caption_side_channel", "api_port", "31910"), 31910),
-                    captions, directMedia);
+                    captions, directMedia,new DirectWatchRecoveryService(
+                            DirectWatchSnapshot.STOCK_API,() -> System.nanoTime()/1_000_000L));
             captionHttp.start();
             return true;
         } catch (Exception failure) {

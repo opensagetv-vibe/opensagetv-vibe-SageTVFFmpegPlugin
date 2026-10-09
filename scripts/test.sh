@@ -18,7 +18,16 @@ javac --release 8 -cp "$ROOT/build/classes:$CP" -d "$ROOT/build/test-classes" \
   "$ROOT/tests/org/opensagetv/vibe/ffmpeg/CaptionSideChannelServiceTest.java" \
   "$ROOT/tests/org/opensagetv/vibe/ffmpeg/MimDirectSessionServiceTest.java" \
   "$ROOT/tests/org/opensagetv/vibe/ffmpeg/MimDirectHttpTest.java"
+javac --release 8 -cp "$ROOT/build/classes:$CP" -d "$ROOT/build/test-classes" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/DirectWatchSnapshotTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/DirectWatchRecoveryTicketsTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/DirectWatchRestoreCoordinatorTest.java" \
+  "$ROOT/tests/org/opensagetv/vibe/ffmpeg/DirectWatchRecoveryHttpTest.java"
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.DirectWatchSnapshotTest
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.DirectWatchRecoveryTicketsTest
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.DirectWatchRestoreCoordinatorTest
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.DirectWatchRecoveryHttpTest "$TMP/watch-recovery-http"
 java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.PluginSmokeTest "$TMP"
 java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.CaptionSideChannelServiceTest "$TMP/caption-service"
 java -cp "$ROOT/build/classes:$CP:$ROOT/build/test-classes" org.opensagetv.vibe.ffmpeg.MimDirectSessionServiceTest "$TMP/direct-service"

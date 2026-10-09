@@ -26,12 +26,21 @@ final class CaptionSideChannelHttpServer {
     private final int port;
     private final CaptionSideChannelService service;
     private final MimDirectSessionService direct;
+    private final DirectWatchRecoveryService recovery;
     private HttpServer server;
     private ExecutorService executor;
 
     CaptionSideChannelHttpServer(String bindAddress, int port,
                                  CaptionSideChannelService service,
                                  MimDirectSessionService direct) {
+        this(bindAddress,port,service,direct,null);
+    }
+
+    /** Recovery remains absent on existing production construction/negotiation. */
+    CaptionSideChannelHttpServer(String bindAddress, int port,
+                                 CaptionSideChannelService service,
+                                 MimDirectSessionService direct,
+                                 DirectWatchRecoveryService recovery) {
         if (bindAddress == null || bindAddress.trim().length() == 0)
             throw new IllegalArgumentException("Caption API bind address is empty");
         if (port < 1024 || port > 65535)
@@ -40,6 +49,7 @@ final class CaptionSideChannelHttpServer {
         this.port = port;
         this.service = service;
         this.direct = direct;
+        this.recovery = recovery;
     }
 
     synchronized void start() throws IOException {
@@ -58,6 +68,12 @@ final class CaptionSideChannelHttpServer {
         server.createContext("/v1/direct/teardown", new DirectTeardownHandler());
         server.createContext("/v1/direct/media", new DirectMediaHandler());
         server.createContext("/v1/dvd/status", new DvdStatusHandler());
+        if (recovery !=null) {
+            server.createContext("/v1/direct/recovery/reserve",new RecoveryHandler("reserve"));
+            server.createContext("/v1/direct/recovery/watch",new RecoveryHandler("watch"));
+            server.createContext("/v1/direct/recovery/seek",new RecoveryHandler("seek"));
+            server.createContext("/v1/direct/recovery/cancel",new RecoveryHandler("cancel"));
+        }
         executor = Executors.newFixedThreadPool(8, new ThreadFactory() {
             private int sequence;
             public synchronized Thread newThread(Runnable task) {
@@ -91,6 +107,68 @@ final class CaptionSideChannelHttpServer {
         server = null;
         if (executor != null) executor.shutdownNow();
         executor = null;
+        if (recovery !=null) recovery.close();
+    }
+
+    /**
+     * Closed response vocabulary: never return source paths, arbitrary API
+     * error text or server objects. These candidate routes are not advertised
+     * until production client integration and physical fallback gates pass.
+     */
+    private final class RecoveryHandler implements HttpHandler {
+        private final String stage;
+        RecoveryHandler(String stage) { this.stage=stage; }
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                send(exchange,405,error("method_not_allowed")); return;
+            }
+            // HttpServer contexts are prefix matches; reject suffixes and
+            // bound parser work before decoding caller-controlled query data.
+            String expected="/v1/direct/recovery/"+stage;
+            String raw=exchange.getRequestURI().getRawQuery();
+            if (!expected.equals(exchange.getRequestURI().getPath())
+                    || raw ==null || raw.length()>16384) {
+                send(exchange,400,error("invalid_recovery_request")); return;
+            }
+            try {
+                Map<String,String> query=parseQuery(raw);
+                long intent=number(required(query,"intent"),-1,0,Long.MAX_VALUE);
+                if ("reserve".equals(stage)) {
+                    long offset=number(required(query,"startMs"),-1,0,14L*86400000L);
+                    boolean playing=booleanValue(required(query,"playing"),true);
+                    DirectWatchRecoveryService.Reservation reservation=recovery.reserve(
+                            required(query,"clientId"),required(query,"source"),offset,playing,intent);
+                    if (reservation ==null) {
+                        send(exchange,409,error("recovery_snapshot_unavailable")); return;
+                    }
+                    send(exchange,200,"{\"contractVersion\":1,\"recoveryToken\":\""+
+                            json(reservation.handle)+"\",\"context\":\""+json(reservation.context)+
+                            "\",\"mediaFileId\":"+reservation.mediaFileId+",\"intent\":"+intent+
+                            ",\"expiresInMs\":"+DirectWatchRecoveryTickets.TTL_MS+"}");
+                    return;
+                }
+                String handle=required(query,"recoveryToken");
+                String context=required(query,"context");
+                long id=number(required(query,"mediaFileId"),-1,1,Long.MAX_VALUE);
+                if (!handle.matches("[0-9a-f]{32}") || context.length()>64)
+                    throw new IllegalArgumentException("invalid_recovery_binding");
+                if ("cancel".equals(stage)) {
+                    if (!recovery.cancel(handle,context,id,intent))
+                        send(exchange,409,error("stale_recovery_ticket"));
+                    else send(exchange,200,"{\"ok\":true,\"state\":\"canceled\"}");
+                    return;
+                }
+                DirectWatchRestoreCoordinator.Result result="watch".equals(stage)
+                        ? recovery.watch(handle,context,id,intent)
+                        : recovery.seekAfterReady(handle,context,id,intent);
+                boolean accepted=result ==DirectWatchRestoreCoordinator.Result.WATCH_REQUESTED
+                        || result ==DirectWatchRestoreCoordinator.Result.SEEK_REQUESTED;
+                send(exchange,accepted ? 200 : 409,"{\"ok\":"+accepted+",\"state\":\""+
+                        result.name().toLowerCase(java.util.Locale.US)+"\"}");
+            } catch (IllegalArgumentException invalid) {
+                send(exchange,400,error("invalid_recovery_request"));
+            }
+        }
     }
 
     private final class CapabilitiesHandler implements HttpHandler {
@@ -101,7 +179,11 @@ final class CaptionSideChannelHttpServer {
             }
             String captions = service.capabilitiesJson();
             String combined = captions.substring(0, captions.length() - 1) +
-                    ",\"mimDirect\":" + direct.capabilitiesJson() + "}";
+                    ",\"mimDirect\":" + direct.capabilitiesJson() +
+                    ",\"directWatchRecovery\":{\"contractVersion\":1,\"available\":"+
+                    (recovery !=null && recovery.available())+
+                    ",\"sourceScope\":\"single-segment-non-DVD\""+
+                    ",\"restoreStages\":\"fresh-watch-video-seek\"}}";
             send(exchange, 200, combined);
         }
     }
