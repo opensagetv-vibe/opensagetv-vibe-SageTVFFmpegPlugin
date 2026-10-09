@@ -14,17 +14,22 @@ The Windows `.185` stock-server validation is complete and recorded in
 
 ## Active tasks
 
-- [ ] **PLUGIN-RELEASE-001 - Publish approved beta0.1.5 and catalog update.**
-  Pair Linux/Windows manifests with verified MIM0.4.11; preserve stock files,
-  existing physical qualifications and explicit limits. Affected Java8/JDK11,
-  recovery/HTTP/session/caption/launcher/STVi gates pass. Packaging, exact-HEAD
-  green CI, public digest/MD5 verification and upstream catalog submission
-  remain; submission is not a merged/live plugin catalog.
-
 No active MIM-DIRECT-005 commissioning work remains. Release packaging and
 publication remain separately gated by WORKFLOW.md.
 
 ## Checklist change ledger
+
+- [x] **PLUGIN-RELEASE-001 - Publish approved beta0.1.5 and catalog update.**
+  Closed2026-10-09: Linux/Windows Standard/STVi packages paired with MIM0.4.11;
+  stock-JAR Java8/JDK11 affected recovery/session/HTTP/caption/launcher/STVi and
+  deterministic packaging pass. Release68fbbe4e0dcb21e3c8b13f0c41afb9166cff94e9
+  has green CI; all10 public assets downloaded/GitHub SHA256 verified. Every
+  package MD5 matches five changed catalog entries. PR127 OPEN/MERGEABLE at
+  OpenSageTV/sagetv-plugin-repo; submission is not merged/live availability.
+  Existing physical evidence/500ms stress/Windows limits retained; no server
+  restart or stock file change. Compact workspace PLUGIN-RELEASE-001 evidence;
+  completed staging retires recoverably, canonical packages remain. Follow-up
+  documentation does not rewrite the release tag or rebuild runtime.
 
 - 2026-10-09 pre-commit publication review:0.1.5 Java8/JDK11 affected suites,
   stock linkage/STVi/launchers and Linux/Windows manifests paired with0.4.11

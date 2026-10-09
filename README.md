@@ -61,9 +61,9 @@ Implemented and commissioned:
 
 The `.232` commissioning server and non-Pro Fire TV validation passed recorded
 and live Fixed/MIM playback through VAAPI (`h264_vaapi`), including real
-video/audio output and HDMI continuity. Version0.1.5 is the approved beta
-release candidate, paired with MIM0.4.11. Catalog publication requires an
-upstream manifest PR; submission is not immediate catalog availability.
+video/audio output and HDMI continuity. Version0.1.5 is published as a beta,
+paired with MIM0.4.11. Catalog update PR127 is submitted for upstream review;
+submission is not immediate plugin-manager availability.
 
 ## Hardware test and report export
 

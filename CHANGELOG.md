@@ -9,6 +9,11 @@
 
 ## 0.1.5 - 2026-10-09
 
+- Published10 public assets and independently verified their GitHub SHA256s,
+  ZIP integrity and catalog MD5 values. Four Standard/STVi manifest updates
+  submitted in plugin-repo#127; ordinary catalog availability awaits merge.
+  Post-release ledger closure is documentation-only; tag/runtime unchanged.
+
 - Prepare the approved beta update with qualified bounded watch recovery and
   explicit owned-Direct feature negotiation, paired with MIM0.4.11. Stock-JAR
   Java8/JDK11, STVi, snapshot/ticket/coordinator/HTTP/session/caption/launcher

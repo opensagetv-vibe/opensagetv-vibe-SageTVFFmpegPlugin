@@ -1,8 +1,17 @@
 # OpenSageTV Vibe FFmpeg Plugin handoff
 
-## PLUGIN-RELEASE-001 approved publication preparation (2026-10-09)
+## PLUGIN-RELEASE-001 published and catalog submitted (2026-10-09)
 
-Publish beta0.1.5 with paired MIM0.4.11 Linux/Windows payloads. Stock-JAR
+Beta0.1.5: https://github.com/opensagetv-vibe/opensagetv-vibe-SageTVFFmpegPlugin/releases/tag/v0.1.5
+Tag68fbbe4e0dcb21e3c8b13f0c41afb9166cff94e9 has green CI; all10 public
+assets independently downloaded/GitHub digest verified. Four changed Standard/
+STVi manifests reference exact verified MIM0.4.11 and package MD5s.
+Catalog PR127 OPEN/MERGEABLE: https://github.com/OpenSageTV/sagetv-plugin-repo/pull/127
+Plugin-manager availability awaits upstream merge/aggregate generation. No
+test-server installation/restart or recording interruption. Completed task is
+in ledger; post-release documentation keeps tag/runtime unchanged.
+
+Qualification detail: beta0.1.5 has paired MIM0.4.11 Linux/Windows payloads. Stock-JAR
 Java8/JDK11 and all affected STVi/recovery/session/caption/launcher contracts
 pass. Initial2s loopback HTTP timeout during concurrent builds is not a proven
 runtime defect; complete repeat passes unchanged. Existing device/stock/GPU
